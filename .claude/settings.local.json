@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "Bash(git add:*)",
+      "WebSearch",
+      "WebFetch(domain:files.minecraftforge.net)",
+      "Bash(gh api:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(git commit:*)",
+      "Bash(find:*)"
+    ]
+  }
+}

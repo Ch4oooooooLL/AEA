@@ -2,10 +2,15 @@ package com.ae2channelrouter.tile;
 
 import java.util.EnumSet;
 
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.ae2channelrouter.api.IRoutingDevice;
+
+import appeng.api.util.AECableType;
+import appeng.api.util.DimensionalCoord;
+import appeng.tile.inventory.InvOperation;
 
 /**
  * Tile entity for routing cables.
@@ -21,7 +26,7 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
      * Uses ForgeDirection for 6-sided connection tracking.
      */
     private EnumSet<ForgeDirection> connections;
-    
+
     /**
      * Constructor initializes the tile with empty connections.
      */
@@ -29,7 +34,7 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
         super();
         this.connections = EnumSet.noneOf(ForgeDirection.class);
     }
-    
+
     /**
      * Get the device type - cables are CABLE type.
      */
@@ -37,7 +42,16 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
     public DeviceType getDeviceType() {
         return DeviceType.CABLE;
     }
-    
+
+    /**
+     * Get the cable connection type for AE2 integration.
+     * Routing cables use SMART cable type for visual connection.
+     */
+    @Override
+    public AECableType getCableConnectionType(ForgeDirection dir) {
+        return AECableType.SMART;
+    }
+
     /**
      * Check if a specific side has an active connection.
      * 
@@ -47,7 +61,7 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
     public boolean isConnected(ForgeDirection side) {
         return connections.contains(side);
     }
-    
+
     /**
      * Get all currently connected sides.
      * 
@@ -56,7 +70,7 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
     public EnumSet<ForgeDirection> getConnections() {
         return EnumSet.copyOf(connections);
     }
-    
+
     /**
      * Add a connection to a specific side.
      * 
@@ -66,7 +80,7 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
         connections.add(side);
         markDirty();
     }
-    
+
     /**
      * Remove a connection from a specific side.
      * 
@@ -76,7 +90,7 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
         connections.remove(side);
         markDirty();
     }
-    
+
     /**
      * Clear all connections.
      */
@@ -84,7 +98,7 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
         connections.clear();
         markDirty();
     }
-    
+
     /**
      * Called when grid connection state changes.
      * Cables update their visual state based on connectivity.
@@ -95,7 +109,7 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
         // Visual updates will be handled by block rendering
         markDirty();
     }
-    
+
     /**
      * Get the ItemStack representation for this tile.
      * Used for network display and WAILA integration.
@@ -104,5 +118,41 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
     protected ItemStack getItemStackFromTile() {
         // Return null for now - will be populated when block item is created
         return null;
+    }
+
+    /**
+     * Get internal inventory - cables don't have inventory.
+     * Required by AEBaseInvTile.
+     */
+    @Override
+    public IInventory getInternalInventory() {
+        return null;
+    }
+
+    /**
+     * Handle inventory changes - cables don't have inventory.
+     * Required by AEBaseInvTile.
+     */
+    @Override
+    public void onChangeInventory(IInventory inv, int slot, InvOperation mc, ItemStack removed, ItemStack added) {
+        // Cables don't have inventory - no action needed
+    }
+
+    /**
+     * Get accessible slots by side - cables don't have inventory.
+     * Required by AEBaseInvTile.
+     */
+    @Override
+    public int[] getAccessibleSlotsBySide(ForgeDirection whichSide) {
+        return new int[0];
+    }
+
+    /**
+     * Get the dimensional coordinate of this tile.
+     * Required by IGridProxyable.
+     */
+    @Override
+    public DimensionalCoord getLocation() {
+        return new DimensionalCoord(this);
     }
 }

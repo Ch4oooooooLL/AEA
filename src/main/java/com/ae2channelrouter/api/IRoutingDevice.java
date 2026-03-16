@@ -9,14 +9,14 @@ import net.minecraftforge.common.util.ForgeDirection;
  * and connectable by routing cables.
  */
 public interface IRoutingDevice {
-    
+
     /**
      * Get the type of routing device.
      * 
      * @return Device type identifier
      */
     DeviceType getDeviceType();
-    
+
     /**
      * Check if this device can accept a connection from a specific direction.
      * 
@@ -26,7 +26,7 @@ public interface IRoutingDevice {
     default boolean canConnectFrom(ForgeDirection from) {
         return true;
     }
-    
+
     /**
      * Types of routing devices.
      */

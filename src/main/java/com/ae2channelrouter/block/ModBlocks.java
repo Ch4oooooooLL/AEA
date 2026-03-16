@@ -4,6 +4,7 @@ import com.ae2channelrouter.AE2ChannelRouter;
 import com.ae2channelrouter.tile.AEBaseRouterTile;
 import com.ae2channelrouter.tile.RoutingCableTile;
 
+import appeng.block.AEBaseBlock;
 import cpw.mods.fml.common.registry.GameRegistry;
 
 /**
@@ -38,7 +39,8 @@ public class ModBlocks {
         // Phase 2: Routing Cable
         routingCable = new RoutingCableBlock();
         GameRegistry.registerBlock(routingCable, BLOCK_ROUTING_CABLE);
-        AE2ChannelRouter.INSTANCE.getLogger().info("Registered routing cable block");
+        AE2ChannelRouter.INSTANCE.getLogger()
+            .info("Registered routing cable block");
 
         AE2ChannelRouter.INSTANCE.getLogger()
             .info("Block registration complete");
@@ -57,7 +59,8 @@ public class ModBlocks {
 
         // Phase 2: Routing Cable Tile
         GameRegistry.registerTileEntity(RoutingCableTile.class, AE2ChannelRouter.MOD_ID + ":" + TILE_ROUTING_CABLE);
-        AE2ChannelRouter.INSTANCE.getLogger().info("Registered routing cable tile entity");
+        AE2ChannelRouter.INSTANCE.getLogger()
+            .info("Registered routing cable tile entity");
 
         // Register base router tile - used for testing AE2 integration
         // This will be replaced with specific tile implementations in later phases
