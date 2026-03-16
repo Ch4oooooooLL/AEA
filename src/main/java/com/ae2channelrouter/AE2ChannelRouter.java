@@ -3,11 +3,14 @@ package com.ae2channelrouter;
 import org.apache.logging.log4j.Logger;
 
 import com.ae2channelrouter.block.ModBlocks;
+import com.ae2channelrouter.client.ClientInit;
 
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 /**
  * AE2 Channel Router - Main Mod Class
@@ -67,6 +70,11 @@ public class AE2ChannelRouter {
     public void init(FMLInitializationEvent event) {
         // Initialization that requires other mods to be ready
         logger.info("AE2 Channel Router init phase");
+
+        // Initialize client-side components
+        if (event.getSide().isClient()) {
+            ClientInit.init(event);
+        }
     }
 
     /**
