@@ -1,7 +1,11 @@
 package com.ae2channelrouter;
 
+import com.ae2channelrouter.block.ModBlocks;
 import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import org.apache.logging.log4j.Logger;
 
 /**
  * AE2 Channel Router - Main Mod Class
@@ -26,6 +30,17 @@ public class AE2ChannelRouter {
     @Mod.Instance(MOD_ID)
     public static AE2ChannelRouter INSTANCE;
 
+    private Logger logger;
+
+    /**
+     * Get the mod logger.
+     *
+     * @return the Logger instance
+     */
+    public Logger getLogger() {
+        return logger;
+    }
+
     /**
      * Pre-initialization handler.
      * GTNH convention: ALL initialization happens in preInit.
@@ -33,7 +48,34 @@ public class AE2ChannelRouter {
      */
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        // All initialization goes here per GTNH convention
-        // Blocks, items, tile entities registered in preInit only
+        // Initialize logger
+        this.logger = event.getModLog();
+        logger.info("Initializing AE2 Channel Router");
+
+        // Register blocks and tile entities
+        ModBlocks.registerBlocks();
+        ModBlocks.registerTileEntities();
+
+        logger.info("AE2 Channel Router preInit complete");
+    }
+
+    /**
+     * Initialization handler.
+     * Called during FMLInitializationEvent.
+     */
+    @Mod.EventHandler
+    public void init(FMLInitializationEvent event) {
+        // Initialization that requires other mods to be ready
+        logger.info("AE2 Channel Router init phase");
+    }
+
+    /**
+     * Post-initialization handler.
+     * Called during FMLPostInitializationEvent.
+     */
+    @Mod.EventHandler
+    public void postInit(FMLPostInitializationEvent event) {
+        // Post-initialization cleanup
+        logger.info("AE2 Channel Router postInit phase");
     }
 }
