@@ -1,8 +1,14 @@
 dependencies {
-    // AE2 local source dependency
-    implementation project(':Applied-Energistics-2-Unofficial')
-
+    // AE2 dependency (using Maven)
+    compileOnly('com.github.GTNewHorizons:Applied-Energistics-2-Unofficial:rv3-beta-695-GTNH:dev') {
+        transitive = false
+    }
+    
     // Required GTNH dependencies
-    implementation('com.github.GTNewHorizons:NotEnoughItems:2.7.91-GTNH:dev')
-    implementation("com.github.GTNewHorizons:GTNHLib:0.6.40:dev")
+    compileOnly('com.github.GTNewHorizons:NotEnoughItems:2.8.44-GTNH:dev') {
+        transitive = false
+    }
+    compileOnly('com.github.GTNewHorizons:GTNHLib:0.7.10:dev') {
+        transitive = false
+    }
 }

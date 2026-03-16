@@ -1,11 +1,13 @@
 package com.ae2channelrouter;
 
+import org.apache.logging.log4j.Logger;
+
 import com.ae2channelrouter.block.ModBlocks;
+
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import org.apache.logging.log4j.Logger;
 
 /**
  * AE2 Channel Router - Main Mod Class
@@ -18,10 +20,8 @@ import org.apache.logging.log4j.Logger;
     acceptedMinecraftVersions = "[1.7.10]",
     name = AE2ChannelRouter.MOD_NAME,
     version = BuildTags.VERSION,
-    dependencies = "required-after:Forge@[10.13.4.1614,);" +
-                   "required-after:appliedenergistics2;" +
-                   "required-after:gtnhlib@[0.6.11,)"
-)
+    dependencies = "required-after:Forge@[10.13.4.1614,);" + "required-after:appliedenergistics2;"
+        + "required-after:gtnhlib@[0.6.11,)")
 public class AE2ChannelRouter {
 
     public static final String MOD_ID = "ae2channelrouter";

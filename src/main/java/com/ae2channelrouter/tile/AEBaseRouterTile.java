@@ -1,9 +1,10 @@
 package com.ae2channelrouter.tile;
 
+import net.minecraft.item.ItemStack;
+
 import appeng.api.networking.GridFlags;
 import appeng.me.helpers.AENetworkProxy;
 import appeng.tile.grid.AENetworkInvTile;
-import net.minecraft.item.ItemStack;
 
 /**
  * Base router tile entity that extends AENetworkInvTile.
@@ -26,9 +27,11 @@ public abstract class AEBaseRouterTile extends AENetworkInvTile {
     public AEBaseRouterTile() {
         super();
         // Configure grid flags - require channel for operation
-        this.getProxy().setFlags(GridFlags.REQUIRE_CHANNEL);
+        this.getProxy()
+            .setFlags(GridFlags.REQUIRE_CHANNEL);
         // Set idle power usage (AE/t) - base cost for being connected
-        this.getProxy().setIdlePowerUsage(1.0);
+        this.getProxy()
+            .setIdlePowerUsage(1.0);
     }
 
     /**
@@ -39,7 +42,8 @@ public abstract class AEBaseRouterTile extends AENetworkInvTile {
     public void onReady() {
         super.onReady();
         // Initialize the grid proxy - connects to AE2 network
-        this.getProxy().onReady();
+        this.getProxy()
+            .onReady();
     }
 
     /**
@@ -50,7 +54,8 @@ public abstract class AEBaseRouterTile extends AENetworkInvTile {
     public void invalidate() {
         super.invalidate();
         // Clean up grid proxy - removes from AE2 network
-        this.getProxy().invalidate();
+        this.getProxy()
+            .invalidate();
     }
 
     /**
@@ -61,7 +66,8 @@ public abstract class AEBaseRouterTile extends AENetworkInvTile {
     public void onChunkUnload() {
         super.onChunkUnload();
         // Notify proxy of chunk unload
-        this.getProxy().onChunkUnload();
+        this.getProxy()
+            .onChunkUnload();
     }
 
     /**
@@ -73,7 +79,9 @@ public abstract class AEBaseRouterTile extends AENetworkInvTile {
         super.gridChanged();
         // Grid state changed - network topology updated
         // Subclasses can override to react to changes
-        onGridConnectionStateChanged(this.getProxy().isActive());
+        onGridConnectionStateChanged(
+            this.getProxy()
+                .isActive());
     }
 
     /**
@@ -82,7 +90,10 @@ public abstract class AEBaseRouterTile extends AENetworkInvTile {
      * @return true if connected to a valid grid with power
      */
     public boolean hasGridAccess() {
-        return this.getProxy().isReady() && this.getProxy().isActive();
+        return this.getProxy()
+            .isReady()
+            && this.getProxy()
+                .isActive();
     }
 
     /**
@@ -91,7 +102,8 @@ public abstract class AEBaseRouterTile extends AENetworkInvTile {
      * @return true if the network has power
      */
     public boolean isNetworkPowered() {
-        return this.getProxy().isPowered();
+        return this.getProxy()
+            .isPowered();
     }
 
     /**
