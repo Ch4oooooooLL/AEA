@@ -7,10 +7,10 @@
 
 ### Core Infrastructure
 
-- [ ] **CORE-01**: Project setup with Gradle, Forge 10.13.4.1614, Jabel for Java 8 bytecode
-- [ ] **CORE-02**: Main mod class with FML initialization and AE2 API integration
-- [ ] **CORE-03**: AENetworkProxy wrapper utility with GridAccessException handling
-- [ ] **CORE-04**: Base tile entity extending AENetworkInvTile for AE2 integration
+- [x] **CORE-01**: Project setup with Gradle, Forge 10.13.4.1614, Jabel for Java 8 bytecode
+- [x] **CORE-02**: Main mod class with FML initialization and AE2 API integration
+- [x] **CORE-03**: AENetworkProxy wrapper utility with GridAccessException handling
+- [x] **CORE-04**: Base tile entity extending AENetworkInvTile for AE2 integration
 
 ### Routing Cable
 
@@ -60,10 +60,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CORE-01 | Phase 1 | Pending |
-| CORE-02 | Phase 1 | Pending |
-| CORE-03 | Phase 1 | Pending |
-| CORE-04 | Phase 1 | Pending |
+| CORE-01 | Phase 1 | Complete |
+| CORE-02 | Phase 1 | Complete |
+| CORE-03 | Phase 1 | Complete |
+| CORE-04 | Phase 1 | Complete |
 | CABL-01 | Phase 2 | Pending |
 | CABL-02 | Phase 2 | Pending |
 | CABL-03 | Phase 2 | Pending |
