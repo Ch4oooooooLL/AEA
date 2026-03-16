@@ -10,7 +10,7 @@ This roadmap maps 20 v1 requirements into 5 phases. Each phase delivers a cohere
 
 ## Phases
 
-- [~] **Phase 1: Core Infrastructure** - Project setup and AE2 integration foundation (1/3 plans complete)
+- [~] **Phase 1: Core Infrastructure** - Project setup and AE2 integration foundation (2/3 plans complete)
 - [ ] **Phase 2: Routing Cable** - Physical routing network layer
 - [ ] **Phase 3: Routing Controller** - Channel pooling and allocation hub
 - [ ] **Phase 4: Routing Terminal** - Channel distribution to AE devices
@@ -35,7 +35,7 @@ This roadmap maps 20 v1 requirements into 5 phases. Each phase delivers a cohere
 **Plans:** 3 plans
 
 - **01-01**: ~~Gradle Build Setup~~ — Create GTNH-compliant Gradle configuration with AE2 local source dependency **[COMPLETE]**
-- **01-02**: Mod Foundation — Main mod class with @Mod annotation and NetworkProxy wrapper utility
+- **01-02**: ~~Mod Foundation~~ — Main mod class with @Mod annotation and NetworkProxy wrapper utility **[COMPLETE]**
 - **01-03**: Base Tile Entity — AEBaseRouterTile extending AENetworkInvTile with lifecycle management
 
 **Wave Structure:**
