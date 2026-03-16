@@ -11,6 +11,8 @@ import com.ae2channelrouter.api.IRoutingDevice;
 
 import appeng.api.util.AECableType;
 import appeng.api.util.DimensionalCoord;
+import appeng.tile.TileEvent;
+import appeng.tile.events.TileEventType;
 import appeng.tile.inventory.InvOperation;
 
 /**
@@ -175,10 +177,7 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
         int z = zCoord;
 
         for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
-            TileEntity te = worldObj.getTileEntity(
-                    x + dir.offsetX,
-                    y + dir.offsetY,
-                    z + dir.offsetZ);
+            TileEntity te = worldObj.getTileEntity(x + dir.offsetX, y + dir.offsetY, z + dir.offsetZ);
 
             if (te instanceof IRoutingDevice) {
                 IRoutingDevice device = (IRoutingDevice) te;
@@ -193,11 +192,10 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
     /**
      * Called each tick to handle periodic updates.
      * Performs connection checks every 16 ticks on the server side.
+     * Uses @TileEvent annotation for AE2's tick system.
      */
-    @Override
-    public void updateEntity() {
-        super.updateEntity();
-
+    @TileEvent(TileEventType.TICK)
+    public void onTick() {
         tickCount++;
 
         // Periodic connection check (every 16 ticks to reduce load)
