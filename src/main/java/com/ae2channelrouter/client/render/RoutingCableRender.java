@@ -1,7 +1,6 @@
 /*
  * This file is part of AE2 Channel Router.
  * Copyright (c) 2026, AE2 Channel Router Team, All rights reserved.
- *
  * AE2 Channel Router is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -51,15 +50,16 @@ public class RoutingCableRender implements ISimpleBlockRenderingHandler {
 
     private RoutingCableRender() {}
 
-    /**
-     * Get the render ID for this renderer.
-     */
-    public static int getRenderId() {
+    @Override
+    public int getRenderId() {
         return RENDER_ID;
     }
 
-    @Override
-    public int getRenderId() {
+    /**
+     * Get the render ID for routing cables.
+     * Static accessor for use in other classes.
+     */
+    public static int getCableRenderId() {
         return RENDER_ID;
     }
 
@@ -80,9 +80,9 @@ public class RoutingCableRender implements ISimpleBlockRenderingHandler {
         // Render all faces with orange color
         IIcon icon = block.getIcon(0, metadata);
         if (icon == null) {
-            icon = ((net.minecraft.client.renderer.texture.TextureMap)
-                            net.minecraft.client.Minecraft.getMinecraft().getTextureManager()
-                                    .getTexture(net.minecraft.client.renderer.texture.TextureMap.locationBlocksTexture))
+            icon = ((net.minecraft.client.renderer.texture.TextureMap) net.minecraft.client.Minecraft.getMinecraft()
+                .getTextureManager()
+                .getTexture(net.minecraft.client.renderer.texture.TextureMap.locationBlocksTexture))
                     .getAtlasSprite("minecraft:blocks/glass");
         }
 
@@ -93,7 +93,7 @@ public class RoutingCableRender implements ISimpleBlockRenderingHandler {
 
     @Override
     public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId,
-            RenderBlocks renderer) {
+        RenderBlocks renderer) {
         if (!(block instanceof RoutingCableBlock)) {
             return false;
         }
@@ -112,9 +112,13 @@ public class RoutingCableRender implements ISimpleBlockRenderingHandler {
 
         // Render central cable core
         renderer.setRenderBounds(CABLE_MIN, CABLE_MIN, CABLE_MIN, CABLE_MAX, CABLE_MAX, CABLE_MAX);
-        renderer.renderStandardBlockWithColorMultiplier(block, x, y, z, 
-            ((color >> 16) & 0xFF) / 255.0F, 
-            ((color >> 8) & 0xFF) / 255.0F, 
+        renderer.renderStandardBlockWithColorMultiplier(
+            block,
+            x,
+            y,
+            z,
+            ((color >> 16) & 0xFF) / 255.0F,
+            ((color >> 8) & 0xFF) / 255.0F,
             (color & 0xFF) / 255.0F);
 
         // Render connections for each direction
@@ -129,7 +133,7 @@ public class RoutingCableRender implements ISimpleBlockRenderingHandler {
      * Render a cable connection in the specified direction.
      */
     private void renderConnection(RenderBlocks renderer, Block block, int x, int y, int z, ForgeDirection dir,
-            int color) {
+        int color) {
         float minX = CABLE_MIN;
         float minY = CABLE_MIN;
         float minZ = CABLE_MIN;
@@ -168,7 +172,11 @@ public class RoutingCableRender implements ISimpleBlockRenderingHandler {
         }
 
         renderer.setRenderBounds(minX, minY, minZ, maxX, maxY, maxZ);
-        renderer.renderStandardBlockWithColorMultiplier(block, x, y, z,
+        renderer.renderStandardBlockWithColorMultiplier(
+            block,
+            x,
+            y,
+            z,
             ((color >> 16) & 0xFF) / 255.0F,
             ((color >> 8) & 0xFF) / 255.0F,
             (color & 0xFF) / 255.0F);

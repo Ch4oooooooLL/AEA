@@ -1,7 +1,6 @@
 /*
  * This file is part of AE2 Channel Router.
  * Copyright (c) 2026, AE2 Channel Router Team, All rights reserved.
- *
  * AE2 Channel Router is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -38,6 +37,6 @@ public class ClientInit {
      * Get the render ID for routing cables.
      */
     public static int getRoutingCableRenderId() {
-        return RoutingCableRender.getRenderId();
+        return RoutingCableRender.getCableRenderId();
     }
 }
