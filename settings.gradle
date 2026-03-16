@@ -1,0 +1,12 @@
+plugins {
+    id 'com.gtnewhorizons.gtnhsettingsconvention' version '1.0.44'
+}
+
+rootProject.name = 'AE2-Channel-Router'
+
+// Include AE2 local source as composite build
+includeBuild('../Sources/Applied-Energistics-2-Unofficial-rv3-beta-695-GTNH') {
+    dependencySubstitution {
+        substitute module('com.github.GTNewHorizons:Applied-Energistics-2-Unofficial') using project(':')
+    }
+}
