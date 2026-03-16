@@ -2,6 +2,7 @@ package com.ae2channelrouter.block;
 
 import java.util.EnumSet;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
@@ -124,5 +125,19 @@ public class RoutingCableBlock extends AEBaseBlock {
      */
     public boolean hasTileEntity(int metadata) {
         return true;
+    }
+
+    /**
+     * Called when a neighboring block changes.
+     * Triggers connection updates on the cable tile entity.
+     */
+    @Override
+    public void onNeighborBlockChange(World world, int x, int y, int z, Block neighborBlock) {
+        super.onNeighborBlockChange(world, x, y, z, neighborBlock);
+
+        TileEntity te = world.getTileEntity(x, y, z);
+        if (te instanceof RoutingCableTile) {
+            ((RoutingCableTile) te).updateConnections();
+        }
     }
 }
