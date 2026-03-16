@@ -61,7 +61,7 @@ This roadmap maps 20 v1 requirements into 5 phases. Each phase delivers a cohere
 
 **Plans:** 3 plans
 
-- **02-01**: ~~Routing Cable Foundation~~ — IRoutingDevice interface, RoutingCableBlock, RoutingCableTile **[PENDING]**
+- **02-01**: ~~Routing Cable Foundation~~ — IRoutingDevice interface, RoutingCableBlock, RoutingCableTile **[COMPLETE]**
 - **02-02**: ~~Cable Rendering~~ — Custom orange glass style rendering **[PENDING]**
 - **02-03**: ~~Connection Logic~~ — 6-sided IRoutingDevice detection **[PENDING]**
 
