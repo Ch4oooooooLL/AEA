@@ -14,10 +14,10 @@
 
 ### Routing Cable
 
-- [ ] **CABL-01**: Routing cable block - connects routing terminals to routing controller
-- [ ] **CABL-02**: Routing cable tile entity with network communication capability
-- [ ] **CABL-03**: Cable rendering (distinct from AE2 cables)
-- [ ] **CABL-04**: Cable connection logic (can connect to routing devices, not AE devices)
+- [x] **CABL-01**: Routing cable block - connects routing terminals to routing controller
+- [x] **CABL-02**: Routing cable tile entity with network communication capability
+- [x] **CABL-03**: Cable rendering (distinct from AE2 cables)
+- [x] **CABL-04**: Cable connection logic (can connect to routing devices, not AE devices)
 
 ### Routing Controller
 
@@ -64,10 +64,10 @@
 | CORE-02 | Phase 1 | Complete |
 | CORE-03 | Phase 1 | Complete |
 | CORE-04 | Phase 1 | Complete |
-| CABL-01 | Phase 2 | Pending |
-| CABL-02 | Phase 2 | Pending |
-| CABL-03 | Phase 2 | Pending |
-| CABL-04 | Phase 2 | Pending |
+| CABL-01 | Phase 2 | Complete |
+| CABL-02 | Phase 2 | Complete |
+| CABL-03 | Phase 2 | Complete |
+| CABL-04 | Phase 2 | Complete |
 | CTRL-01 | Phase 3 | Pending |
 | CTRL-02 | Phase 3 | Pending |
 | CTRL-03 | Phase 3 | Pending |
