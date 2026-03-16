@@ -21,14 +21,16 @@ Implement 6-sided connection logic that connects routing cables to IRoutingDevic
   - Checks each neighbor for IRoutingDevice interface
   - Calls `canConnectFrom()` on discovered devices
   - Updates connections EnumSet accordingly
-- Added `updateEntity()` override for periodic checks (every 16 ticks)
+- Added `onTick()` with `@TileEvent(TileEventType.TICK)` for periodic checks (every 16 ticks)
 - Added `onReady()` override for initial connection detection
 - Server-side only execution via `!worldObj.isRemote` check
 
 Key methods:
 - `updateConnections()` - Scans all 6 sides for IRoutingDevice neighbors
-- `updateEntity()` - Periodic connection verification (every 16 ticks)
+- `onTick()` - Periodic connection verification using AE2's event system (every 16 ticks)
 - `onReady()` - Initial connection detection when tile is ready
+
+Note: AEBaseTile uses annotation-based event system with final `updateEntity()`, so we use `@TileEvent(TileEventType.TICK)` instead of overriding.
 
 ### 2. Neighbor Change Notification in RoutingCableBlock
 **File:** `src/main/java/com/ae2channelrouter/block/RoutingCableBlock.java`
