@@ -8,10 +8,13 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.ae2channelrouter.AE2ChannelRouter;
+import com.ae2channelrouter.client.ClientInit;
 import com.ae2channelrouter.tile.RoutingCableTile;
 
 import appeng.block.AEBaseBlock;
 import appeng.core.CreativeTab;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 /**
  * Block for routing cables.
@@ -28,9 +31,10 @@ public class RoutingCableBlock extends AEBaseBlock {
     public RoutingCableBlock() {
         super(Material.glass);
 
-        // Block properties
-        setHardness(0.0F);
-        setResistance(0.0F);
+        // Block properties - similar to AE2 glass cable
+        setHardness(0.3F);
+        setResistance(1.0F);
+        setStepSound(soundTypeGlass);
         setBlockName("routing_cable");
         setBlockTextureName(AE2ChannelRouter.MOD_ID + ":routing_cable");
 
@@ -50,6 +54,16 @@ public class RoutingCableBlock extends AEBaseBlock {
     @Override
     public boolean renderAsNormalBlock() {
         return false;
+    }
+
+    /**
+     * Get the render type for this block.
+     * Returns custom render ID for orange glass cable rendering.
+     */
+    @Override
+    @SideOnly(Side.CLIENT)
+    public int getRenderType() {
+        return ClientInit.getRoutingCableRenderId();
     }
 
     /**
