@@ -4,6 +4,7 @@ import java.util.EnumSet;
 
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.ae2channelrouter.api.IRoutingDevice;
@@ -14,7 +15,7 @@ import appeng.tile.inventory.InvOperation;
 
 /**
  * Tile entity for routing cables.
- * 
+ *
  * This tile extends AEBaseRouterTile and implements IRoutingDevice to provide
  * the core functionality for routing cable network connections. The cable acts
  * as a simple forwarding device that connects routing terminals to the controller.
@@ -26,6 +27,11 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
      * Uses ForgeDirection for 6-sided connection tracking.
      */
     private EnumSet<ForgeDirection> connections;
+
+    /**
+     * Tick counter for periodic connection updates.
+     */
+    private int tickCount = 0;
 
     /**
      * Constructor initializes the tile with empty connections.
@@ -154,5 +160,59 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
     @Override
     public DimensionalCoord getLocation() {
         return new DimensionalCoord(this);
+    }
+
+    /**
+     * Update connections to neighboring IRoutingDevice implementations.
+     * Checks all 6 sides and updates the connections EnumSet accordingly.
+     */
+    public void updateConnections() {
+        connections.clear();
+        if (worldObj == null) return;
+
+        int x = xCoord;
+        int y = yCoord;
+        int z = zCoord;
+
+        for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+            TileEntity te = worldObj.getTileEntity(
+                    x + dir.offsetX,
+                    y + dir.offsetY,
+                    z + dir.offsetZ);
+
+            if (te instanceof IRoutingDevice) {
+                IRoutingDevice device = (IRoutingDevice) te;
+                if (device.canConnectFrom(dir.getOpposite())) {
+                    connections.add(dir);
+                }
+            }
+        }
+        markDirty();
+    }
+
+    /**
+     * Called each tick to handle periodic updates.
+     * Performs connection checks every 16 ticks on the server side.
+     */
+    @Override
+    public void updateEntity() {
+        super.updateEntity();
+
+        tickCount++;
+
+        // Periodic connection check (every 16 ticks to reduce load)
+        if (!worldObj.isRemote && tickCount % 16 == 0) {
+            updateConnections();
+        }
+    }
+
+    /**
+     * Called when the tile entity is ready and the world is available.
+     * Performs initial connection detection.
+     */
+    @Override
+    public void onReady() {
+        super.onReady();
+        updateConnections();
     }
 }
