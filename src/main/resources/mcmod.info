@@ -1,0 +1,19 @@
+[
+    {
+        "modid": "ae2channelrouter",
+        "name": "AE2 Channel Router",
+        "description": "Channel routing system for Applied Energistics 2. Provides virtual channel allocation to bypass traditional cable limitations.",
+        "version": "${version}",
+        "mcversion": "1.7.10",
+        "url": "",
+        "updateUrl": "",
+        "authorList": ["AE2 Channel Router Team"],
+        "credits": "GTNH Team for AE2 Unofficial, AlgorithmX2 for original AE2",
+        "logoFile": "",
+        "screenshots": [],
+        "dependencies": [
+            "appliedenergistics2",
+            "gtnhlib"
+        ]
+    }
+]
