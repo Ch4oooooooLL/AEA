@@ -136,12 +136,20 @@ This roadmap maps 20 v1 requirements into 5 phases. Each phase delivers a cohere
 **Requirements:** AEIN-01, AEIN-02, AEIN-03, AEIN-04
 
 **Success Criteria** (what must be TRUE):
-1. Mod correctly detects when AE2 controllers are added/removed from network
-2. Connected AE devices appear to have valid virtual channel assignments
-3. Network events (controller connect/disconnect) trigger proper recalculation
-4. GridFlags configured correctly for channel usage tracking
+1. ✓ Mod correctly detects when AE2 controllers are added/removed from network
+2. ✓ Connected AE devices appear to have valid virtual channel assignments
+3. ✓ Network events (controller connect/disconnect) trigger proper recalculation
+4. ✓ GridFlags configured correctly for channel usage tracking
 
-**Plans:** TBD
+**Plans:** 4 plans
+
+- **05-01**: ~~GridFlags Configuration~~ — Configure REQUIRE_CHANNEL for controller, neutral for terminal/cable **[COMPLETE]**
+- **05-02**: ~~Device Detection Improvement~~ — Replace string matching with AE2 API (IGridHost, IGridNode) **[COMPLETE]**
+- **05-03**: ~~Controller Event Handling~~ — Controller add/remove events with channel reclamation **[COMPLETE]**
+- **05-04**: ~~Virtual Channel Injection~~ — Custom IGridCache for virtual channel assignments **[COMPLETE]**
+
+**Wave Structure:**
+- Wave 1: 05-01, 05-02, 05-03, 05-04 (All plans in parallel - no dependencies between them)
 
 ---
 
@@ -153,7 +161,7 @@ This roadmap maps 20 v1 requirements into 5 phases. Each phase delivers a cohere
 | 2. Routing Cable | 3/3 | **Complete** | 2026-03-17 |
 | 3. Routing Controller | 3/3 | **Complete** | 2026-03-17 |
 | 4. Routing Terminal | 3/3 | **Complete** | 2026-03-17 |
-| 5. AE2 Integration | 0/1 | Not started | - |
+| 5. AE2 Integration | 4/4 | **Complete** | 2026-03-17 |
 
 ---
 
