@@ -2,7 +2,6 @@ package com.ae2channelrouter.network;
 
 import java.util.UUID;
 
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 import com.ae2channelrouter.tile.RoutingControllerTile;
@@ -32,16 +31,15 @@ public class PacketRoutingChannel implements IMessage {
     /**
      * Default constructor required for Forge networking.
      */
-    public PacketRoutingChannel() {
-    }
+    public PacketRoutingChannel() {}
 
     /**
      * Constructor for creating packets.
      *
-     * @param terminalId      Unique terminal identifier
+     * @param terminalId       Unique terminal identifier
      * @param routingChannelId Routing channel ID for wireless matching
-     * @param action          Action type (REQUEST, RELEASE, RESPONSE)
-     * @param channelCount    Channel count (for RESPONSE or requested count for REQUEST)
+     * @param action           Action type (REQUEST, RELEASE, RESPONSE)
+     * @param channelCount     Channel count (for RESPONSE or requested count for REQUEST)
      */
     public PacketRoutingChannel(UUID terminalId, int routingChannelId, Action action, int channelCount) {
         this.terminalId = terminalId;
@@ -94,6 +92,7 @@ public class PacketRoutingChannel implements IMessage {
     // ==================== Action Enum ====================
 
     public enum Action {
+
         REQUEST((byte) 0),
         RELEASE((byte) 1),
         RESPONSE((byte) 2);
@@ -152,15 +151,16 @@ public class PacketRoutingChannel implements IMessage {
                 // Get the player entity from client context
                 net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getMinecraft();
                 World clientWorld = mc.theWorld;
-                
+
                 if (clientWorld == null) return null;
-                
+
                 // Search for terminal with matching UUID
                 // This is inefficient but works for v1
                 for (Object tileObj : clientWorld.loadedTileEntityList) {
                     if (tileObj instanceof RoutingTerminalTile) {
                         RoutingTerminalTile terminal = (RoutingTerminalTile) tileObj;
-                        if (terminal.getTerminalId().equals(message.getTerminalId())) {
+                        if (terminal.getTerminalId()
+                            .equals(message.getTerminalId())) {
                             terminal.onChannelAllocated(message.getChannelCount());
                             break;
                         }

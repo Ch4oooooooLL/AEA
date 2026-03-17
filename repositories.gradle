@@ -1,6 +1,9 @@
 // Add any extra repositories here
 repositories {
-    mavenCentral()
+    maven {
+        name = "Maven Central"
+        url = "https://repo.maven.apache.org/maven2/"
+    }
     maven {
         name = "GTNH Nexus"
         url = "https://nexus.gtnewhorizons.com/repository/public/"
@@ -8,5 +11,9 @@ repositories {
     maven {
         name = "Forge"
         url = "https://maven.minecraftforge.net/"
+    }
+    maven {
+        name = "IC2 Maven"
+        url = "https://maven.ic2.player.to/"
     }
 }

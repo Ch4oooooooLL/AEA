@@ -46,7 +46,8 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
     @Override
     protected void configureGridFlags() {
         // Cable is channel-neutral - just passes routing messages
-        this.getProxy().setFlags(); // No flags
+        this.getProxy()
+            .setFlags(); // No flags
     }
 
     /**

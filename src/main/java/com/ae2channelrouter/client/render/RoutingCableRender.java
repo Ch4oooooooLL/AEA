@@ -142,33 +142,32 @@ public class RoutingCableRender implements ISimpleBlockRenderingHandler {
         float maxZ = CABLE_MAX;
 
         switch (dir) {
-            case DOWN -> {
+            case DOWN:
                 minY = 0.0F;
                 maxY = CABLE_MIN;
-            }
-            case UP -> {
+                break;
+            case UP:
                 minY = CABLE_MAX;
                 maxY = 1.0F;
-            }
-            case NORTH -> {
+                break;
+            case NORTH:
                 minZ = 0.0F;
                 maxZ = CABLE_MIN;
-            }
-            case SOUTH -> {
+                break;
+            case SOUTH:
                 minZ = CABLE_MAX;
                 maxZ = 1.0F;
-            }
-            case WEST -> {
+                break;
+            case WEST:
                 minX = 0.0F;
                 maxX = CABLE_MIN;
-            }
-            case EAST -> {
+                break;
+            case EAST:
                 minX = CABLE_MAX;
                 maxX = 1.0F;
-            }
-            default -> {
+                break;
+            default:
                 return;
-            }
         }
 
         renderer.setRenderBounds(minX, minY, minZ, maxX, maxY, maxZ);

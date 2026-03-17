@@ -49,8 +49,8 @@ public class ContainerRoutingTerminal extends Container {
     @Override
     public boolean canInteractWith(EntityPlayer player) {
         // Check if tile is still valid and player is close enough
-        return tile != null 
-            && tile.getWorldObj().getTileEntity(tile.xCoord, tile.yCoord, tile.zCoord) == tile
+        return tile != null && tile.getWorldObj()
+            .getTileEntity(tile.xCoord, tile.yCoord, tile.zCoord) == tile
             && player.getDistanceSq(tile.xCoord + 0.5, tile.yCoord + 0.5, tile.zCoord + 0.5) <= 64.0;
     }
 
@@ -72,11 +72,10 @@ public class ContainerRoutingTerminal extends Container {
         boolean warning = tile.isSoftLimitWarning();
 
         // Check if any values changed
-        if (allocated != lastAllocatedChannels || 
-            devices != lastDeviceCount ||
-            online != lastOnline ||
-            warning != lastWarning) {
-            
+        if (allocated != lastAllocatedChannels || devices != lastDeviceCount
+            || online != lastOnline
+            || warning != lastWarning) {
+
             // Sync to all crafters (listeners)
             @SuppressWarnings("unchecked")
             List<ICrafting> crafters = this.crafters;

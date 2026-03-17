@@ -62,9 +62,7 @@ public class GuiHandler implements IGuiHandler {
         } else if (ID == GUI_ROUTING_TERMINAL) {
             TileEntity te = world.getTileEntity(x, y, z);
             if (te instanceof RoutingTerminalTile) {
-                ContainerRoutingTerminal container = new ContainerRoutingTerminal(
-                    (RoutingTerminalTile) te,
-                    player);
+                ContainerRoutingTerminal container = new ContainerRoutingTerminal((RoutingTerminalTile) te, player);
                 return new GuiRoutingTerminal(container);
             }
         }

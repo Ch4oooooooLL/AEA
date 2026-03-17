@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -20,6 +21,9 @@ import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridHost;
 import appeng.api.networking.IGridNode;
 import appeng.api.util.DimensionalCoord;
+import appeng.tile.TileEvent;
+import appeng.tile.events.TileEventType;
+import appeng.tile.inventory.InvOperation;
 
 /**
  * Tile entity for the Routing Terminal block.
@@ -68,7 +72,8 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
     protected void configureGridFlags() {
         // Terminal is channel-neutral - doesn't consume AE2 channels directly
         // Channels come from controller's pool, not from AE2 network
-        this.getProxy().setFlags(); // No flags = neutral
+        this.getProxy()
+            .setFlags(); // No flags = neutral
     }
 
     @Override
@@ -130,24 +135,25 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
      */
     public void requestChannels(int requestedCount) {
         if (worldObj == null || worldObj.isRemote) return; // Server-side only
-        
+
         this.requestedChannels = requestedCount;
-        
+
         // Create and send packet to controller
         PacketRoutingChannel packet = new PacketRoutingChannel(
             terminalId,
             routingChannelId,
             PacketRoutingChannel.Action.REQUEST,
-            requestedCount
-        );
-        
+            requestedCount);
+
         // Send to server (controller will handle)
         AE2ChannelRouter.network.sendToServer(packet);
-        
-        AE2ChannelRouter.INSTANCE.getLogger().debug(
-            "Terminal {} requesting {} channels on routing channel {}",
-            terminalId, requestedCount, routingChannelId
-        );
+
+        AE2ChannelRouter.INSTANCE.getLogger()
+            .debug(
+                "Terminal {} requesting {} channels on routing channel {}",
+                terminalId,
+                requestedCount,
+                routingChannelId);
     }
 
     /**
@@ -167,26 +173,26 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
         int previousAllocation = this.allocatedChannels;
         this.allocatedChannels = allocated;
         this.isOnline = true;
-        
+
         // Check if this was a reduction
         if (allocated < previousAllocation) {
-            AE2ChannelRouter.INSTANCE.getLogger().warn(
-                "Terminal {} channels reduced: {} -> {} (capacity shortage)",
-                terminalId, previousAllocation, allocated
-            );
+            AE2ChannelRouter.INSTANCE.getLogger()
+                .warn(
+                    "Terminal {} channels reduced: {} -> {} (capacity shortage)",
+                    terminalId,
+                    previousAllocation,
+                    allocated);
             // Could trigger UI warning here
         }
-        
+
         // Update the cache with new allocation
         updateCacheAllocation();
-        
+
         checkSoftLimit();
         markDirty();
-        
-        AE2ChannelRouter.INSTANCE.getLogger().debug(
-            "Terminal {} now has {} channels (was: {})",
-            terminalId, allocated, previousAllocation
-        );
+
+        AE2ChannelRouter.INSTANCE.getLogger()
+            .debug("Terminal {} now has {} channels (was: {})", terminalId, allocated, previousAllocation);
     }
 
     /**
@@ -195,22 +201,19 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
      */
     public void releaseChannels() {
         if (worldObj == null || worldObj.isRemote) return; // Server-side only
-        
+
         if (allocatedChannels > 0) {
             PacketRoutingChannel packet = new PacketRoutingChannel(
                 terminalId,
                 routingChannelId,
                 PacketRoutingChannel.Action.RELEASE,
-                0
-            );
-            
+                0);
+
             AE2ChannelRouter.network.sendToServer(packet);
-            
-            AE2ChannelRouter.INSTANCE.getLogger().debug(
-                "Terminal {} releasing {} channels",
-                terminalId, allocatedChannels
-            );
-            
+
+            AE2ChannelRouter.INSTANCE.getLogger()
+                .debug("Terminal {} releasing {} channels", terminalId, allocatedChannels);
+
             allocatedChannels = 0;
             isOnline = false;
             markDirty();
@@ -219,17 +222,15 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
 
     // ==================== Device Connection Tracking ====================
 
-    @Override
-    public void updateEntity() {
-        super.updateEntity();
-        
+    @TileEvent(TileEventType.TICK)
+    public void updateEntity_RoutingTerminalTile() {
         if (worldObj == null || worldObj.isRemote) return;
-        
+
         // Scan for devices every 20 ticks (1 second)
         if (worldObj.getTotalWorldTime() % 20 == 0) {
             updateDeviceConnections();
         }
-        
+
         // Request channels on first update if not allocated
         if (allocatedChannels == 0 && worldObj.getTotalWorldTime() % 100 == 0) {
             requestDefaultChannels();
@@ -242,47 +243,56 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
      */
     public void updateDeviceConnections() {
         if (worldObj == null || worldObj.isRemote) return;
-        
+
         int previousCount = connectedDeviceCount;
         connectedDeviceCount = 0;
-        
+
         // Track which directions have valid AE devices (for debugging/display)
         Map<ForgeDirection, String> detectedDevices = new HashMap<>();
-        
+
         // Check all 6 directions
         for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
             int x = xCoord + dir.offsetX;
             int y = yCoord + dir.offsetY;
             int z = zCoord + dir.offsetZ;
-            
+
             TileEntity te = worldObj.getTileEntity(x, y, z);
             if (isAEDevice(te)) {
                 connectedDeviceCount++;
-                detectedDevices.put(dir, te.getClass().getSimpleName());
-                
-                AE2ChannelRouter.INSTANCE.getLogger().debug(
-                    "Terminal {} detected AE device at {}: {}",
-                    terminalId, dir.name(), te.getClass().getSimpleName()
-                );
+                detectedDevices.put(
+                    dir,
+                    te.getClass()
+                        .getSimpleName());
+
+                AE2ChannelRouter.INSTANCE.getLogger()
+                    .debug(
+                        "Terminal {} detected AE device at {}: {}",
+                        terminalId,
+                        dir.name(),
+                        te.getClass()
+                            .getSimpleName());
             }
         }
-        
+
         // Log summary if device count changed
         if (connectedDeviceCount != previousCount) {
-            AE2ChannelRouter.INSTANCE.getLogger().info(
-                "Terminal {} device count changed: {} -> {} (detected: {})",
-                terminalId, previousCount, connectedDeviceCount, detectedDevices.values()
-            );
-            
+            AE2ChannelRouter.INSTANCE.getLogger()
+                .info(
+                    "Terminal {} device count changed: {} -> {} (detected: {})",
+                    terminalId,
+                    previousCount,
+                    connectedDeviceCount,
+                    detectedDevices.values());
+
             // Request channel adjustment if changed significantly
             if (Math.abs(connectedDeviceCount - previousCount) >= 2) {
                 requestDefaultChannels();
             }
         }
-        
+
         markDirty();
     }
-    
+
     /**
      * Get information about connected devices for GUI display.
      * Returns map of direction -> device class name.
@@ -291,22 +301,25 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
      */
     public Map<ForgeDirection, String> getConnectedDeviceInfo() {
         Map<ForgeDirection, String> devices = new HashMap<>();
-        
+
         if (worldObj == null || worldObj.isRemote) {
             return devices;
         }
-        
+
         for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
             int x = xCoord + dir.offsetX;
             int y = yCoord + dir.offsetY;
             int z = zCoord + dir.offsetZ;
-            
+
             TileEntity te = worldObj.getTileEntity(x, y, z);
             if (isAEDevice(te)) {
-                devices.put(dir, te.getClass().getSimpleName());
+                devices.put(
+                    dir,
+                    te.getClass()
+                        .getSimpleName());
             }
         }
-        
+
         return devices;
     }
 
@@ -322,30 +335,30 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
         if (te == null) {
             return false;
         }
-        
+
         // Exclude our routing devices
         if (te instanceof IRoutingDevice) {
             return false;
         }
-        
+
         // Check if it's an AE2 grid host (implements IGridHost)
         if (!(te instanceof IGridHost)) {
             return false;
         }
-        
+
         try {
             // Get the grid node to check its flags
             IGridNode node = ((IGridHost) te).getGridNode(ForgeDirection.UNKNOWN);
-            
+
             if (node == null) {
                 // No grid node, can't be an active AE device
                 return false;
             }
-            
+
             // Check if this device requires a channel
             // This is the key check - only count devices that actually need channels
             return node.hasFlag(GridFlags.REQUIRE_CHANNEL);
-            
+
         } catch (Exception e) {
             // If we can't get the node or check flags, it's not a valid AE device
             return false;
@@ -371,16 +384,19 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
             softLimitWarning = false;
             return;
         }
-        
+
         // Average channels per device
         int avgChannelsPerDevice = allocatedChannels / connectedDeviceCount;
         softLimitWarning = avgChannelsPerDevice > SOFT_LIMIT_THRESHOLD;
-        
+
         if (softLimitWarning) {
-            AE2ChannelRouter.INSTANCE.getLogger().warn(
-                "Terminal {} has high channel usage: {} channels for {} devices (avg: {})",
-                terminalId, allocatedChannels, connectedDeviceCount, avgChannelsPerDevice
-            );
+            AE2ChannelRouter.INSTANCE.getLogger()
+                .warn(
+                    "Terminal {} has high channel usage: {} channels for {} devices (avg: {})",
+                    terminalId,
+                    allocatedChannels,
+                    connectedDeviceCount,
+                    avgChannelsPerDevice);
         }
     }
 
@@ -457,7 +473,7 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
         if (!isOnline || allocatedChannels <= 0) {
             return false;
         }
-        
+
         // If GridCache is available, verify it's properly registered
         if (hasGridAccess()) {
             try {
@@ -470,7 +486,7 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
                 return true;
             }
         }
-        
+
         return true;
     }
 
@@ -491,25 +507,25 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
      */
     private void registerConnectedDevices() {
         if (worldObj == null || worldObj.isRemote) return;
-        
+
         // Get the routing channel cache from the grid
         if (!hasGridAccess()) return;
-        
+
         try {
             IGrid grid = getProxy().getGrid();
             RoutingChannelCache cache = grid.getCache(RoutingChannelCache.class);
-            
+
             if (cache == null) {
                 // Cache not available - will use fallback
                 return;
             }
-            
+
             // Register all connected devices
             for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
                 int x = xCoord + dir.offsetX;
                 int y = yCoord + dir.offsetY;
                 int z = zCoord + dir.offsetZ;
-                
+
                 TileEntity te = worldObj.getTileEntity(x, y, z);
                 if (isAEDevice(te) && te instanceof IGridHost) {
                     IGridNode node = ((IGridHost) te).getGridNode(ForgeDirection.UNKNOWN);
@@ -518,12 +534,10 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
                     }
                 }
             }
-            
+
         } catch (Exception e) {
-            AE2ChannelRouter.INSTANCE.getLogger().error(
-                "Failed to register devices with channel cache",
-                e
-            );
+            AE2ChannelRouter.INSTANCE.getLogger()
+                .error("Failed to register devices with channel cache", e);
         }
     }
 
@@ -533,27 +547,24 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
     public void updateCacheAllocation() {
         if (worldObj == null || worldObj.isRemote) return;
         if (!hasGridAccess()) return;
-        
+
         try {
             IGrid grid = getProxy().getGrid();
             RoutingChannelCache cache = grid.getCache(RoutingChannelCache.class);
-            
+
             if (cache != null) {
                 cache.updateTerminalChannels(terminalId, allocatedChannels);
             }
         } catch (Exception e) {
-            AE2ChannelRouter.INSTANCE.getLogger().debug(
-                "Could not update cache allocation: {}",
-                e.getMessage()
-            );
+            AE2ChannelRouter.INSTANCE.getLogger()
+                .debug("Could not update cache allocation: {}", e.getMessage());
         }
     }
 
     // ==================== NBT Serialization ====================
 
-    @Override
-    public void writeToNBT(NBTTagCompound nbt) {
-        super.writeToNBT(nbt);
+    @TileEvent(TileEventType.WORLD_NBT_WRITE)
+    public void writeToNBT_RoutingTerminalTile(NBTTagCompound nbt) {
         nbt.setString("terminalId", terminalId.toString());
         nbt.setInteger("routingChannelId", routingChannelId);
         nbt.setInteger("allocatedChannels", allocatedChannels);
@@ -563,9 +574,8 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
         nbt.setBoolean("softLimitWarning", softLimitWarning);
     }
 
-    @Override
-    public void readFromNBT(NBTTagCompound nbt) {
-        super.readFromNBT(nbt);
+    @TileEvent(TileEventType.WORLD_NBT_READ)
+    public void readFromNBT_RoutingTerminalTile(NBTTagCompound nbt) {
         if (nbt.hasKey("terminalId")) {
             try {
                 this.terminalId = UUID.fromString(nbt.getString("terminalId"));
@@ -587,5 +597,16 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
     @Override
     public DimensionalCoord getLocation() {
         return new DimensionalCoord(this);
+    }
+
+    @Override
+    public int[] getAccessibleSlotsBySide(ForgeDirection side) {
+        // Terminal has no inventory slots accessible from sides
+        return new int[0];
+    }
+
+    @Override
+    public void onChangeInventory(IInventory inv, int slot, InvOperation mc, ItemStack removed, ItemStack added) {
+        // Terminal does not have an internal inventory that needs change tracking
     }
 }

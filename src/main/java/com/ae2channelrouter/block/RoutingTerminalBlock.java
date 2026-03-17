@@ -2,12 +2,10 @@ package com.ae2channelrouter.block;
 
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 import com.ae2channelrouter.AE2ChannelRouter;
 import com.ae2channelrouter.gui.GuiHandler;
-import com.ae2channelrouter.tile.RoutingTerminalTile;
 
 import appeng.block.AEBaseBlock;
 import appeng.core.CreativeTab;
@@ -44,39 +42,6 @@ public class RoutingTerminalBlock extends AEBaseBlock {
 
         // Harvest tool: pickaxe
         setHarvestLevel("pickaxe", 0);
-    }
-
-    /**
-     * Check if block renders as a normal block.
-     * Terminal is a full block.
-     */
-    @Override
-    public boolean renderAsNormalBlock() {
-        return true;
-    }
-
-    /**
-     * Check if the block is opaque.
-     */
-    @Override
-    public boolean isOpaqueCube() {
-        return true;
-    }
-
-    /**
-     * Create the tile entity for this block.
-     */
-    @Override
-    public TileEntity createNewTileEntity(World world, int metadata) {
-        return new RoutingTerminalTile();
-    }
-
-    /**
-     * Check if the block has a tile entity.
-     */
-    @Override
-    public boolean hasTileEntity(int metadata) {
-        return true;
     }
 
     /**

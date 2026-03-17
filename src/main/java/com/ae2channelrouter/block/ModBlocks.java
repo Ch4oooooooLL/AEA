@@ -1,7 +1,6 @@
 package com.ae2channelrouter.block;
 
 import com.ae2channelrouter.AE2ChannelRouter;
-import com.ae2channelrouter.tile.AEBaseRouterTile;
 import com.ae2channelrouter.tile.RoutingCableTile;
 import com.ae2channelrouter.tile.RoutingControllerTile;
 import com.ae2channelrouter.tile.RoutingTerminalTile;
@@ -79,12 +78,14 @@ public class ModBlocks {
             .info("Registered routing cable tile entity");
 
         // Phase 3: Routing Controller Tile
-        GameRegistry.registerTileEntity(RoutingControllerTile.class, AE2ChannelRouter.MOD_ID + ":" + TILE_ROUTING_CONTROLLER);
+        GameRegistry
+            .registerTileEntity(RoutingControllerTile.class, AE2ChannelRouter.MOD_ID + ":" + TILE_ROUTING_CONTROLLER);
         AE2ChannelRouter.INSTANCE.getLogger()
             .info("Registered routing controller tile entity");
 
         // Phase 4: Routing Terminal Tile
-        GameRegistry.registerTileEntity(RoutingTerminalTile.class, AE2ChannelRouter.MOD_ID + ":" + TILE_ROUTING_TERMINAL);
+        GameRegistry
+            .registerTileEntity(RoutingTerminalTile.class, AE2ChannelRouter.MOD_ID + ":" + TILE_ROUTING_TERMINAL);
         AE2ChannelRouter.INSTANCE.getLogger()
             .info("Registered routing terminal tile entity");
 

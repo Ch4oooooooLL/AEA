@@ -1,8 +1,9 @@
 package com.ae2channelrouter.tile;
 
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 
-import appeng.api.networking.GridFlags;
+import appeng.api.util.AECableType;
 import appeng.me.helpers.AENetworkProxy;
 import appeng.tile.grid.AENetworkInvTile;
 
@@ -138,4 +139,22 @@ public abstract class AEBaseRouterTile extends AENetworkInvTile {
      * @return ItemStack representing this tile
      */
     protected abstract ItemStack getItemStackFromTile();
+
+    /**
+     * Return the internal inventory for this tile.
+     * Router tiles have no inventory, return null.
+     */
+    @Override
+    public IInventory getInternalInventory() {
+        return null;
+    }
+
+    /**
+     * Return the cable connection type for this tile.
+     * Router tiles use glass cable connections.
+     */
+    @Override
+    public AECableType getCableConnectionType(net.minecraftforge.common.util.ForgeDirection dir) {
+        return AECableType.GLASS;
+    }
 }

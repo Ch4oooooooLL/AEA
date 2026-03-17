@@ -3,10 +3,8 @@ package com.ae2channelrouter.gui.container;
 import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.ICrafting;
-import net.minecraft.inventory.Slot;
 
 import com.ae2channelrouter.tile.RoutingControllerTile;
 
@@ -44,7 +42,8 @@ public class ContainerRoutingController extends Container {
     @Override
     public boolean canInteractWith(EntityPlayer player) {
         // Check if tile is still valid and player is close enough
-        return tile.getWorldObj().getTileEntity(tile.xCoord, tile.yCoord, tile.zCoord) == tile
+        return tile.getWorldObj()
+            .getTileEntity(tile.xCoord, tile.yCoord, tile.zCoord) == tile
             && player.getDistanceSq(tile.xCoord + 0.5, tile.yCoord + 0.5, tile.zCoord + 0.5) <= 64.0;
     }
 

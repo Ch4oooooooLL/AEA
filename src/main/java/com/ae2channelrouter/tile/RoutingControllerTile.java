@@ -2,11 +2,11 @@ package com.ae2channelrouter.tile;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -16,8 +16,11 @@ import com.ae2channelrouter.network.PacketRoutingChannel;
 
 import appeng.api.networking.GridFlags;
 import appeng.api.networking.IGrid;
-import appeng.api.networking.GridAccessException;
 import appeng.api.util.DimensionalCoord;
+import appeng.me.GridAccessException;
+import appeng.tile.TileEvent;
+import appeng.tile.events.TileEventType;
+import appeng.tile.inventory.InvOperation;
 import appeng.tile.networking.TileController;
 
 /**
@@ -46,7 +49,7 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
     private int routingChannelId = 0;
     private int totalChannels = 0;
     private int allocatedChannels = 0;
-    
+
     // Status tracking
     private boolean wasOverCapacity = false;
     private int lastControllerCount = 0;
@@ -61,7 +64,8 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
     @Override
     protected void configureGridFlags() {
         // Controller requires channel to participate in AE2 network
-        this.getProxy().setFlags(GridFlags.REQUIRE_CHANNEL);
+        this.getProxy()
+            .setFlags(GridFlags.REQUIRE_CHANNEL);
     }
 
     @Override
@@ -106,35 +110,35 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
 
         try {
             IGrid grid = getProxy().getGrid();
-            
+
             // Build new set of detected controllers
             Set<TileController> newControllers = new HashSet<>();
-            Iterator<TileController> controllers = grid.getMachines(TileController.class).iterator();
-            while (controllers.hasNext()) {
-                TileController controller = controllers.next();
-                newControllers.add(controller);
+            for (appeng.api.networking.IGridNode node : grid.getMachines(TileController.class)) {
+                if (node.getMachine() instanceof TileController) {
+                    newControllers.add((TileController) node.getMachine());
+                }
             }
-            
+
             // Compare with previous set to detect changes
             Set<TileController> added = new HashSet<>(newControllers);
             added.removeAll(detectedControllers);
-            
+
             Set<TileController> removed = new HashSet<>(detectedControllers);
             removed.removeAll(newControllers);
-            
+
             // Update the detected set
             detectedControllers = newControllers;
-            
+
             // Handle additions
             if (!added.isEmpty()) {
                 handleControllersAdded(added);
             }
-            
+
             // Handle removals
             if (!removed.isEmpty()) {
                 handleControllersRemoved(removed);
             }
-            
+
             updateChannelStats();
             markDirty();
 
@@ -149,12 +153,14 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
      */
     private void handleControllersAdded(Set<TileController> added) {
         int addedChannels = added.size() * CHANNELS_PER_CONTROLLER;
-        
-        AE2ChannelRouter.INSTANCE.getLogger().info(
-            "Controller {} detected {} new AE2 controller(s), adding {} channels to pool",
-            routingChannelId, added.size(), addedChannels
-        );
-        
+
+        AE2ChannelRouter.INSTANCE.getLogger()
+            .info(
+                "Controller {} detected {} new AE2 controller(s), adding {} channels to pool",
+                routingChannelId,
+                added.size(),
+                addedChannels);
+
         // Channels are automatically available - no need to notify terminals
         // They can use the extra capacity on next request
     }
@@ -165,19 +171,19 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
      */
     private void handleControllersRemoved(Set<TileController> removed) {
         int removedChannels = removed.size() * CHANNELS_PER_CONTROLLER;
-        
-        AE2ChannelRouter.INSTANCE.getLogger().warn(
-            "Controller {} lost {} AE2 controller(s), removing {} channels from pool",
-            routingChannelId, removed.size(), removedChannels
-        );
-        
+
+        AE2ChannelRouter.INSTANCE.getLogger()
+            .warn(
+                "Controller {} lost {} AE2 controller(s), removing {} channels from pool",
+                routingChannelId,
+                removed.size(),
+                removedChannels);
+
         // Check if we're now over capacity
         if (allocatedChannels > totalChannels) {
             int overage = allocatedChannels - totalChannels;
-            AE2ChannelRouter.INSTANCE.getLogger().error(
-                "Controller {} is over capacity by {} channels! Reclaiming...",
-                routingChannelId, overage
-            );
+            AE2ChannelRouter.INSTANCE.getLogger()
+                .error("Controller {} is over capacity by {} channels! Reclaiming...", routingChannelId, overage);
             reclaimChannels(overage);
         }
     }
@@ -187,19 +193,20 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
      */
     private void handleAllControllersRemoved() {
         if (!detectedControllers.isEmpty()) {
-            AE2ChannelRouter.INSTANCE.getLogger().error(
-                "Controller {} lost all grid access! Reclaiming all {} channels",
-                routingChannelId, allocatedChannels
-            );
-            
+            AE2ChannelRouter.INSTANCE.getLogger()
+                .error(
+                    "Controller {} lost all grid access! Reclaiming all {} channels",
+                    routingChannelId,
+                    allocatedChannels);
+
             detectedControllers.clear();
             updateChannelStats();
-            
+
             // Force reclamation of all channels
             if (allocatedChannels > 0) {
                 reclaimChannels(allocatedChannels);
             }
-            
+
             markDirty();
         }
     }
@@ -214,42 +221,43 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
         if (amount <= 0 || terminalAllocations.isEmpty()) {
             return;
         }
-        
-        AE2ChannelRouter.INSTANCE.getLogger().warn(
-            "Reclaiming {} channels from {} terminals",
-            amount, terminalAllocations.size()
-        );
-        
+
+        AE2ChannelRouter.INSTANCE.getLogger()
+            .warn("Reclaiming {} channels from {} terminals", amount, terminalAllocations.size());
+
         // Calculate reclamation per terminal (proportional)
         int totalAllocated = calculateTotalAllocated();
         Map<UUID, Integer> reclaimed = new HashMap<>();
-        
+
         for (Map.Entry<UUID, Integer> entry : terminalAllocations.entrySet()) {
             UUID terminalId = entry.getKey();
             int allocated = entry.getValue();
-            
+
             // Reclaim proportionally (round down, handle remainder later)
             int toReclaim = (allocated * amount) / totalAllocated;
-            
+
             if (toReclaim > 0 && toReclaim < allocated) {
                 int newAllocation = allocated - toReclaim;
                 terminalAllocations.put(terminalId, newAllocation);
                 reclaimed.put(terminalId, toReclaim);
-                
-                AE2ChannelRouter.INSTANCE.getLogger().info(
-                    "Reclaimed {} channels from terminal {} (was: {}, now: {})",
-                    toReclaim, terminalId, allocated, newAllocation
-                );
+
+                AE2ChannelRouter.INSTANCE.getLogger()
+                    .info(
+                        "Reclaimed {} channels from terminal {} (was: {}, now: {})",
+                        toReclaim,
+                        terminalId,
+                        allocated,
+                        newAllocation);
             }
         }
-        
+
         // Handle any rounding remainder
         int actuallyReclaimed = 0;
         for (int reclaimedAmount : reclaimed.values()) {
             actuallyReclaimed += reclaimedAmount;
         }
         int remainder = amount - actuallyReclaimed;
-        
+
         if (remainder > 0 && !terminalAllocations.isEmpty()) {
             // Take from the largest allocation
             UUID largestTerminal = null;
@@ -260,7 +268,7 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
                     largestTerminal = entry.getKey();
                 }
             }
-            
+
             if (largestTerminal != null) {
                 int current = terminalAllocations.get(largestTerminal);
                 int toReclaim = Math.min(remainder, current - 1); // Leave at least 1
@@ -271,12 +279,12 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
                 }
             }
         }
-        
+
         // Notify all affected terminals
         for (UUID terminalId : reclaimed.keySet()) {
             notifyTerminalAllocationChanged(terminalId, terminalAllocations.get(terminalId));
         }
-        
+
         updateChannelStats();
         markDirty();
     }
@@ -285,7 +293,7 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
      * Notify a terminal that its channel allocation has changed.
      * Sends a packet to update the terminal's state.
      * 
-     * @param terminalId The terminal to notify
+     * @param terminalId    The terminal to notify
      * @param newAllocation The new channel allocation
      */
     private void notifyTerminalAllocationChanged(UUID terminalId, int newAllocation) {
@@ -293,16 +301,13 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
             terminalId,
             routingChannelId,
             PacketRoutingChannel.Action.RESPONSE,
-            newAllocation
-        );
-        
+            newAllocation);
+
         // Send to all players (simplest approach)
         AE2ChannelRouter.network.sendToAll(packet);
-        
-        AE2ChannelRouter.INSTANCE.getLogger().debug(
-            "Notified terminal {} of new allocation: {} channels",
-            terminalId, newAllocation
-        );
+
+        AE2ChannelRouter.INSTANCE.getLogger()
+            .debug("Notified terminal {} of new allocation: {} channels", terminalId, newAllocation);
     }
 
     /**
@@ -312,7 +317,7 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
         int previousTotal = totalChannels;
         totalChannels = detectedControllers.size() * CHANNELS_PER_CONTROLLER;
         allocatedChannels = calculateTotalAllocated();
-        
+
         // Track if we were over capacity
         wasOverCapacity = (allocatedChannels > previousTotal);
         lastControllerCount = detectedControllers.size();
@@ -364,7 +369,7 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
     /**
      * Request channel allocation from a terminal.
      *
-     * @param terminalId Unique terminal identifier
+     * @param terminalId        Unique terminal identifier
      * @param requestedChannels Number of channels requested
      * @return Number of channels actually allocated (may be less than requested)
      */
@@ -428,36 +433,6 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
         return totalChannels - allocatedChannels;
     }
 
-    /**
-     * Check if controller is currently over capacity.
-     * 
-     * @return true if allocated > total
-     */
-    public boolean isOverCapacity() {
-        return allocatedChannels > totalChannels;
-    }
-
-    /**
-     * Get the current capacity overage.
-     * 
-     * @return Number of channels over capacity (0 if not over)
-     */
-    public int getOverage() {
-        return Math.max(0, allocatedChannels - totalChannels);
-    }
-
-    /**
-     * Check if controller just recovered from over-capacity state.
-     * Useful for GUI notifications.
-     * 
-     * @return true if was over capacity but now is not
-     */
-    public boolean justRecoveredFromOverCapacity() {
-        boolean wasOver = wasOverCapacity;
-        wasOverCapacity = isOverCapacity();
-        return wasOver && !wasOverCapacity;
-    }
-
     public int getDetectedControllerCount() {
         return detectedControllers.size();
     }
@@ -477,9 +452,8 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
 
     // ==================== NBT Serialization ====================
 
-    @Override
-    public void writeToNBT(NBTTagCompound nbt) {
-        super.writeToNBT(nbt);
+    @TileEvent(TileEventType.WORLD_NBT_WRITE)
+    public void writeToNBT_RoutingControllerTile(NBTTagCompound nbt) {
         nbt.setInteger("routingChannelId", routingChannelId);
         nbt.setInteger("totalChannels", totalChannels);
         nbt.setInteger("allocatedChannels", allocatedChannels);
@@ -487,14 +461,16 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
         // Save terminal allocations
         NBTTagCompound allocationsTag = new NBTTagCompound();
         for (Map.Entry<UUID, Integer> entry : terminalAllocations.entrySet()) {
-            allocationsTag.setInteger(entry.getKey().toString(), entry.getValue());
+            allocationsTag.setInteger(
+                entry.getKey()
+                    .toString(),
+                entry.getValue());
         }
         nbt.setTag("terminalAllocations", allocationsTag);
     }
 
-    @Override
-    public void readFromNBT(NBTTagCompound nbt) {
-        super.readFromNBT(nbt);
+    @TileEvent(TileEventType.WORLD_NBT_READ)
+    public void readFromNBT_RoutingControllerTile(NBTTagCompound nbt) {
         routingChannelId = nbt.getInteger("routingChannelId");
         totalChannels = nbt.getInteger("totalChannels");
         allocatedChannels = nbt.getInteger("allocatedChannels");
@@ -521,5 +497,16 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
     @Override
     public DimensionalCoord getLocation() {
         return new DimensionalCoord(this);
+    }
+
+    @Override
+    public int[] getAccessibleSlotsBySide(net.minecraftforge.common.util.ForgeDirection side) {
+        // Controller has no inventory slots accessible from sides
+        return new int[0];
+    }
+
+    @Override
+    public void onChangeInventory(IInventory inv, int slot, InvOperation mc, ItemStack removed, ItemStack added) {
+        // Controller does not have an internal inventory that needs change tracking
     }
 }

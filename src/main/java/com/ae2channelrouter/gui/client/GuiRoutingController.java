@@ -1,7 +1,6 @@
 package com.ae2channelrouter.gui.client;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.StatCollector;
 
 import com.ae2channelrouter.gui.container.ContainerRoutingController;
@@ -92,7 +91,11 @@ public class GuiRoutingController extends GuiContainer {
         this.fontRendererObj.drawString("Total: " + totalChannels, leftMargin, yPos, 0x404040);
         yPos += lineHeight;
 
-        this.fontRendererObj.drawString("Used: " + allocatedChannels, leftMargin, yPos, getChannelColor(allocatedChannels, totalChannels));
+        this.fontRendererObj.drawString(
+            "Used: " + allocatedChannels,
+            leftMargin,
+            yPos,
+            getChannelColor(allocatedChannels, totalChannels));
         yPos += lineHeight;
 
         this.fontRendererObj.drawString("Available: " + availableChannels, leftMargin, yPos, 0x00AA00); // Green
@@ -106,7 +109,12 @@ public class GuiRoutingController extends GuiContainer {
             // Background bar
             drawRect(leftMargin, yPos, leftMargin + barWidth, yPos + 8, 0xFF555555);
             // Filled portion
-            drawRect(leftMargin, yPos, leftMargin + filledWidth, yPos + 8, getUsageBarColor(allocatedChannels, totalChannels));
+            drawRect(
+                leftMargin,
+                yPos,
+                leftMargin + filledWidth,
+                yPos + 8,
+                getUsageBarColor(allocatedChannels, totalChannels));
 
             yPos += 14;
         }
