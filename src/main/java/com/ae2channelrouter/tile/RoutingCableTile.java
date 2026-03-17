@@ -43,6 +43,12 @@ public class RoutingCableTile extends AEBaseRouterTile implements IRoutingDevice
         this.connections = EnumSet.noneOf(ForgeDirection.class);
     }
 
+    @Override
+    protected void configureGridFlags() {
+        // Cable is channel-neutral - just passes routing messages
+        this.getProxy().setFlags(); // No flags
+    }
+
     /**
      * Get the device type - cables are CABLE type.
      */

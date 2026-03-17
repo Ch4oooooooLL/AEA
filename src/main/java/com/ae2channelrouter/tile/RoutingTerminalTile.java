@@ -58,6 +58,13 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
     }
 
     @Override
+    protected void configureGridFlags() {
+        // Terminal is channel-neutral - doesn't consume AE2 channels directly
+        // Channels come from controller's pool, not from AE2 network
+        this.getProxy().setFlags(); // No flags = neutral
+    }
+
+    @Override
     public DeviceType getDeviceType() {
         return DeviceType.TERMINAL;
     }

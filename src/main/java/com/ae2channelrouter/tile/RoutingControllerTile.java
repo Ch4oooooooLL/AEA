@@ -12,6 +12,7 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import com.ae2channelrouter.api.IRoutingDevice;
 
+import appeng.api.networking.GridFlags;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.GridAccessException;
 import appeng.api.util.DimensionalCoord;
@@ -49,6 +50,12 @@ public class RoutingControllerTile extends AEBaseRouterTile implements IRoutingD
      */
     public RoutingControllerTile() {
         super();
+    }
+
+    @Override
+    protected void configureGridFlags() {
+        // Controller requires channel to participate in AE2 network
+        this.getProxy().setFlags(GridFlags.REQUIRE_CHANNEL);
     }
 
     @Override

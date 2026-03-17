@@ -21,14 +21,12 @@ import appeng.tile.grid.AENetworkInvTile;
 public abstract class AEBaseRouterTile extends AENetworkInvTile {
 
     /**
-     * Constructor configures the AENetworkProxy with appropriate flags.
+     * Constructor configures the AENetworkProxy.
      * Per GTNH/AE2 conventions, proxy is created by parent AENetworkInvTile.
+     * Grid flags are configured by subclasses via configureGridFlags().
      */
     public AEBaseRouterTile() {
         super();
-        // Configure grid flags - require channel for operation
-        this.getProxy()
-            .setFlags(GridFlags.REQUIRE_CHANNEL);
         // Set idle power usage (AE/t) - base cost for being connected
         this.getProxy()
             .setIdlePowerUsage(1.0);
@@ -36,15 +34,25 @@ public abstract class AEBaseRouterTile extends AENetworkInvTile {
 
     /**
      * Called when the tile becomes ready (world loaded, validated).
-     * Initializes the grid proxy for network connectivity.
+     * Initializes the grid proxy for network connectivity and configures
+     * grid flags via subclass implementation.
      */
     @Override
     public void onReady() {
         super.onReady();
+        // Configure grid flags - subclass determines channel requirements
+        configureGridFlags();
         // Initialize the grid proxy - connects to AE2 network
         this.getProxy()
             .onReady();
     }
+
+    /**
+     * Configure GridFlags for this tile.
+     * Called during onReady() to set appropriate flags.
+     * Subclasses must implement to set their specific flags.
+     */
+    protected abstract void configureGridFlags();
 
     /**
      * Called when the tile is invalidated (chunk unloaded, block broken).
