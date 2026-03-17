@@ -4,6 +4,11 @@ import org.apache.logging.log4j.Logger;
 
 import com.ae2channelrouter.block.ModBlocks;
 import com.ae2channelrouter.client.ClientInit;
+import com.ae2channelrouter.network.PacketRoutingChannel;
+
+import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import cpw.mods.fml.relauncher.Side;
 
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -33,6 +38,9 @@ public class AE2ChannelRouter {
 
     private Logger logger;
 
+    /** Network wrapper for packet handling */
+    public static SimpleNetworkWrapper network;
+
     /**
      * Get the mod logger.
      *
@@ -56,6 +64,21 @@ public class AE2ChannelRouter {
         // Register blocks and tile entities
         ModBlocks.registerBlocks();
         ModBlocks.registerTileEntities();
+
+        // Initialize network
+        network = NetworkRegistry.INSTANCE.newSimpleChannel(MOD_ID);
+
+        // Register packets
+        network.registerMessage(
+            PacketRoutingChannel.Handler.class,
+            PacketRoutingChannel.class,
+            0, // Packet ID
+            Side.SERVER);
+        network.registerMessage(
+            PacketRoutingChannel.Handler.class,
+            PacketRoutingChannel.class,
+            0, // Same packet ID for bidirectional
+            Side.CLIENT);
 
         logger.info("AE2 Channel Router preInit complete");
     }
