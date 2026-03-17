@@ -114,7 +114,16 @@ This roadmap maps 20 v1 requirements into 5 phases. Each phase delivers a cohere
 3. AE devices connected to terminal via routing cables receive channels
 4. Terminal supports unlimited connected AE devices (no per-terminal channel limit)
 
-**Plans:** TBD
+**Plans:** 3 plans
+
+- **04-01**: ~~Routing Terminal Foundation~~ — Block, tile, basic structure and NBT serialization **[COMPLETE]**
+- **04-02**: Terminal-Controller Communication — Wireless protocol, channel allocation **[PENDING]**
+- **04-03**: Terminal GUI — Status display, device connection handling **[PENDING]**
+
+**Wave Structure:**
+- Wave 1: 04-01 (Foundation - depends on Phase 3)
+- Wave 2: 04-02 (Communication - depends on 04-01)
+- Wave 3: 04-03 (GUI - depends on 04-02)
 
 ---
 
@@ -143,7 +152,7 @@ This roadmap maps 20 v1 requirements into 5 phases. Each phase delivers a cohere
 | 1. Core Infrastructure | 3/3 | **Complete** | 2026-03-16 |
 | 2. Routing Cable | 3/3 | **Complete** | 2026-03-17 |
 | 3. Routing Controller | 3/3 | **Complete** | 2026-03-17 |
-| 4. Routing Terminal | 0/1 | Not started | - |
+| 4. Routing Terminal | 1/3 | In Progress | 2026-03-17 |
 | 5. AE2 Integration | 0/1 | Not started | - |
 
 ---
