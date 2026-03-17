@@ -5,9 +5,12 @@ import java.util.UUID;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import com.ae2channelrouter.AE2ChannelRouter;
 import com.ae2channelrouter.api.IRoutingDevice;
+import com.ae2channelrouter.network.PacketRoutingChannel;
 
 import appeng.api.util.DimensionalCoord;
 
@@ -23,8 +26,13 @@ import appeng.api.util.DimensionalCoord;
  * - Channel management (allocated, requested)
  * - Device connection tracking
  * - Wireless communication with controller via routing channel ID
+ * - Soft limit warnings for high channel usage
  */
 public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDevice {
+
+    // Constants
+    private static final int DEFAULT_CHANNEL_REQUEST = 8;
+    private static final int SOFT_LIMIT_THRESHOLD = 16; // Warn if single device > this
 
     // Unique terminal identifier
     private UUID terminalId;
@@ -35,6 +43,7 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
     private int requestedChannels = 0;
     private int connectedDeviceCount = 0;
     private boolean isOnline = false;
+    private boolean softLimitWarning = false;
 
     // Connection tracking
     private EnumSet<ForgeDirection> cableConnections = EnumSet.noneOf(ForgeDirection.class);
@@ -55,19 +64,25 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
 
     @Override
     protected void onGridConnectionStateChanged(boolean connected) {
-        if (connected) {
-            setOnline(true);
+        if (!connected) {
+            // Lost grid connection, release channels
+            releaseChannels();
         } else {
-            setOnline(false);
-            allocatedChannels = 0;
+            // Gained connection, request channels
+            requestDefaultChannels();
         }
-        markDirty();
     }
 
     @Override
     protected ItemStack getItemStackFromTile() {
         // Return null for now - can be enhanced to return the block's item stack
         return null;
+    }
+
+    @Override
+    public void invalidate() {
+        releaseChannels();
+        super.invalidate();
     }
 
     /**
@@ -91,6 +106,187 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
         // This will be expanded in future phases
         // For now, mark that we've checked
         markDirty();
+    }
+
+    // ==================== Channel Management ====================
+
+    /**
+     * Request channels from the controller.
+     * Called on initialization or when device count changes significantly.
+     */
+    public void requestChannels(int requestedCount) {
+        if (worldObj == null || worldObj.isRemote) return; // Server-side only
+        
+        this.requestedChannels = requestedCount;
+        
+        // Create and send packet to controller
+        PacketRoutingChannel packet = new PacketRoutingChannel(
+            terminalId,
+            routingChannelId,
+            PacketRoutingChannel.Action.REQUEST,
+            requestedCount
+        );
+        
+        // Send to server (controller will handle)
+        AE2ChannelRouter.network.sendToServer(packet);
+        
+        AE2ChannelRouter.INSTANCE.getLogger().debug(
+            "Terminal {} requesting {} channels on routing channel {}",
+            terminalId, requestedCount, routingChannelId
+        );
+    }
+
+    /**
+     * Request default channel allocation.
+     */
+    public void requestDefaultChannels() {
+        // Calculate based on connected devices: 8 channels per device minimum
+        int requested = Math.max(DEFAULT_CHANNEL_REQUEST, connectedDeviceCount * 8);
+        requestChannels(requested);
+    }
+
+    /**
+     * Called when controller responds with allocated channels.
+     * This is called from PacketRoutingChannel.Handler on client side.
+     */
+    public void onChannelAllocated(int allocated) {
+        this.allocatedChannels = allocated;
+        this.isOnline = true;
+        checkSoftLimit();
+        markDirty();
+        
+        AE2ChannelRouter.INSTANCE.getLogger().debug(
+            "Terminal {} allocated {} channels",
+            terminalId, allocated
+        );
+    }
+
+    /**
+     * Release all allocated channels back to controller.
+     * Called when terminal is destroyed or loses grid connection.
+     */
+    public void releaseChannels() {
+        if (worldObj == null || worldObj.isRemote) return; // Server-side only
+        
+        if (allocatedChannels > 0) {
+            PacketRoutingChannel packet = new PacketRoutingChannel(
+                terminalId,
+                routingChannelId,
+                PacketRoutingChannel.Action.RELEASE,
+                0
+            );
+            
+            AE2ChannelRouter.network.sendToServer(packet);
+            
+            AE2ChannelRouter.INSTANCE.getLogger().debug(
+                "Terminal {} releasing {} channels",
+                terminalId, allocatedChannels
+            );
+            
+            allocatedChannels = 0;
+            isOnline = false;
+            markDirty();
+        }
+    }
+
+    // ==================== Device Connection Tracking ====================
+
+    @Override
+    public void updateEntity() {
+        super.updateEntity();
+        
+        if (worldObj == null || worldObj.isRemote) return;
+        
+        // Scan for devices every 20 ticks (1 second)
+        if (worldObj.getTotalWorldTime() % 20 == 0) {
+            updateDeviceConnections();
+        }
+        
+        // Request channels on first update if not allocated
+        if (allocatedChannels == 0 && worldObj.getTotalWorldTime() % 100 == 0) {
+            requestDefaultChannels();
+        }
+    }
+
+    /**
+     * Scan all 6 sides for connected AE devices.
+     * Counts both direct adjacent blocks and devices connected via routing cables.
+     */
+    public void updateDeviceConnections() {
+        if (worldObj == null || worldObj.isRemote) return;
+        
+        int previousCount = connectedDeviceCount;
+        connectedDeviceCount = 0;
+        
+        // Check all 6 directions
+        for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+            int x = xCoord + dir.offsetX;
+            int y = yCoord + dir.offsetY;
+            int z = zCoord + dir.offsetZ;
+            
+            // Check for AE2 tile entities (not routing devices)
+            TileEntity te = worldObj.getTileEntity(x, y, z);
+            if (isAEDevice(te)) {
+                connectedDeviceCount++;
+            }
+        }
+        
+        // If device count changed significantly, request new channels
+        if (Math.abs(connectedDeviceCount - previousCount) >= 2) {
+            requestDefaultChannels();
+        }
+        
+        markDirty();
+    }
+
+    /**
+     * Check if a tile entity is an AE device (but not a routing device).
+     */
+    private boolean isAEDevice(TileEntity te) {
+        if (te == null) return false;
+        
+        // Check if it's an AE2 network tile (has grid proxy)
+        // But exclude our routing devices
+        if (te instanceof IRoutingDevice) {
+            return false; // Don't count routing cables/controllers/terminals
+        }
+        
+        // Check for AE2 tile entities by class name or interface
+        // This is a simplified check - in production, use AE2 API
+        String className = te.getClass().getName();
+        return className.contains("appeng") && !className.contains("BlockCable");
+    }
+
+    // ==================== Soft Limit Warning ====================
+
+    /**
+     * Check if any single device is using more channels than the soft limit.
+     * Returns true if warning should be shown.
+     */
+    public boolean isSoftLimitWarning() {
+        return softLimitWarning;
+    }
+
+    /**
+     * Calculate average channels per device and check against soft limit.
+     * In v2, this could track per-device usage. For v1, we use average.
+     */
+    public void checkSoftLimit() {
+        if (connectedDeviceCount == 0) {
+            softLimitWarning = false;
+            return;
+        }
+        
+        // Average channels per device
+        int avgChannelsPerDevice = allocatedChannels / connectedDeviceCount;
+        softLimitWarning = avgChannelsPerDevice > SOFT_LIMIT_THRESHOLD;
+        
+        if (softLimitWarning) {
+            AE2ChannelRouter.INSTANCE.getLogger().warn(
+                "Terminal {} has high channel usage: {} channels for {} devices (avg: {})",
+                terminalId, allocatedChannels, connectedDeviceCount, avgChannelsPerDevice
+            );
+        }
     }
 
     // ==================== Getters and Setters ====================
@@ -164,6 +360,7 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
         nbt.setInteger("requestedChannels", requestedChannels);
         nbt.setInteger("connectedDeviceCount", connectedDeviceCount);
         nbt.setBoolean("isOnline", isOnline);
+        nbt.setBoolean("softLimitWarning", softLimitWarning);
     }
 
     @Override
@@ -182,6 +379,7 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
         requestedChannels = nbt.getInteger("requestedChannels");
         connectedDeviceCount = nbt.getInteger("connectedDeviceCount");
         isOnline = nbt.getBoolean("isOnline");
+        softLimitWarning = nbt.getBoolean("softLimitWarning");
     }
 
     // ==================== Abstract Method Implementations ====================
