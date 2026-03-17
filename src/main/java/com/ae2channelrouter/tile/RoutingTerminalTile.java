@@ -159,17 +159,28 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
 
     /**
      * Called when controller responds with allocated channels.
-     * This is called from PacketRoutingChannel.Handler on client side.
+     * Handles both normal allocations and forced reclamations.
      */
     public void onChannelAllocated(int allocated) {
+        int previousAllocation = this.allocatedChannels;
         this.allocatedChannels = allocated;
         this.isOnline = true;
+        
+        // Check if this was a reduction
+        if (allocated < previousAllocation) {
+            AE2ChannelRouter.INSTANCE.getLogger().warn(
+                "Terminal {} channels reduced: {} -> {} (capacity shortage)",
+                terminalId, previousAllocation, allocated
+            );
+            // Could trigger UI warning here
+        }
+        
         checkSoftLimit();
         markDirty();
         
         AE2ChannelRouter.INSTANCE.getLogger().debug(
-            "Terminal {} allocated {} channels",
-            terminalId, allocated
+            "Terminal {} now has {} channels (was: {})",
+            terminalId, allocated, previousAllocation
         );
     }
 
