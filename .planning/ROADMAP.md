@@ -87,7 +87,16 @@ This roadmap maps 20 v1 requirements into 5 phases. Each phase delivers a cohere
 4. GUI displays used/available channel count and basic network info
 5. Controller can allocate channels to routing terminals via wireless communication
 
-**Plans:** TBD
+**Plans:** 3 plans
+
+- **03-01**: ~~Routing Controller Foundation~~ — Block, tile entity, basic structure **[COMPLETE]**
+- **03-02**: Controller Detection — AE2 controller auto-detection, channel pool calculation **[PLANNED]**
+- **03-03**: GUI and Communication — Network GUI, wireless terminal protocol **[PLANNED]**
+
+**Wave Structure:**
+- Wave 1: 03-01 (Foundation - depends on Phase 2)
+- Wave 2: 03-02 (Core logic - depends on 03-01)
+- Wave 3: 03-03 (GUI/communication - depends on 03-02)
 
 ---
 
@@ -133,7 +142,7 @@ This roadmap maps 20 v1 requirements into 5 phases. Each phase delivers a cohere
 |-------|----------------|--------|-----------|
 | 1. Core Infrastructure | 3/3 | **Complete** | 2026-03-16 |
 | 2. Routing Cable | 3/3 | **Complete** | 2026-03-17 |
-| 3. Routing Controller | 0/1 | Not started | - |
+| 3. Routing Controller | 1/3 | **In Progress** | 2026-03-17 |
 | 4. Routing Terminal | 0/1 | Not started | - |
 | 5. AE2 Integration | 0/1 | Not started | - |
 
