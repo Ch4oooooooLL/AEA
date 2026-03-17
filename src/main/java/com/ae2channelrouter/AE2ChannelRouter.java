@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import com.ae2channelrouter.block.ModBlocks;
 import com.ae2channelrouter.client.ClientInit;
 import com.ae2channelrouter.gui.GuiHandler;
+import com.ae2channelrouter.me.GridCacheRegistration;
 import com.ae2channelrouter.network.PacketRoutingChannel;
 
 import cpw.mods.fml.common.network.NetworkRegistry;
@@ -84,6 +85,14 @@ public class AE2ChannelRouter {
         // Register GUI handler
         NetworkRegistry.INSTANCE.registerGuiHandler(this, new GuiHandler());
         logger.info("Registered GUI handler");
+
+        // Register GridCache with AE2 (if supported)
+        boolean cacheRegistered = GridCacheRegistration.registerCache();
+        if (cacheRegistered) {
+            logger.info("RoutingChannelCache registered with AE2");
+        } else {
+            logger.info("RoutingChannelCache not available - using fallback mode");
+        }
 
         logger.info("AE2 Channel Router preInit complete");
     }

@@ -12,9 +12,11 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import com.ae2channelrouter.AE2ChannelRouter;
 import com.ae2channelrouter.api.IRoutingDevice;
+import com.ae2channelrouter.me.RoutingChannelCache;
 import com.ae2channelrouter.network.PacketRoutingChannel;
 
 import appeng.api.networking.GridFlags;
+import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridHost;
 import appeng.api.networking.IGridNode;
 import appeng.api.util.DimensionalCoord;
@@ -174,6 +176,9 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
             );
             // Could trigger UI warning here
         }
+        
+        // Update the cache with new allocation
+        updateCacheAllocation();
         
         checkSoftLimit();
         markDirty();
@@ -443,28 +448,105 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
 
     /**
      * Check if this terminal can provide channels to AE devices.
-     * Returns true if allocated channels > 0 and online.
+     * In Phase 5, this integrates with the AE2 channel system via GridCache.
      * 
-     * Note: Full AE2 channel integration will be in Phase 5.
-     * For Phase 4, the terminal provides the infrastructure and tracks
-     * that it has channel capacity.
-     *
      * @return true if terminal can provide channels
      */
     public boolean canProvideChannels() {
-        return isOnline && allocatedChannels > 0;
+        // Basic check: must be online and have allocation
+        if (!isOnline || allocatedChannels <= 0) {
+            return false;
+        }
+        
+        // If GridCache is available, verify it's properly registered
+        if (hasGridAccess()) {
+            try {
+                IGrid grid = getProxy().getGrid();
+                RoutingChannelCache cache = grid.getCache(RoutingChannelCache.class);
+                return cache != null; // Cache available = integration active
+            } catch (Exception e) {
+                // Cache not available, but we can still provide channels
+                // Devices will use fallback behavior
+                return true;
+            }
+        }
+        
+        return true;
     }
 
     /**
      * Get available channel count for distribution to connected devices.
-     * 
-     * Note: Full AE2 channel integration will be in Phase 5.
-     * For now, returns allocated channels if terminal is online.
      *
      * @return number of channels available for distribution
      */
     public int getAvailableChannelsForDevices() {
         return canProvideChannels() ? allocatedChannels : 0;
+    }
+
+    // ==================== GridCache Integration ====================
+
+    /**
+     * Register connected devices with the routing channel cache.
+     * Called when devices are detected.
+     */
+    private void registerConnectedDevices() {
+        if (worldObj == null || worldObj.isRemote) return;
+        
+        // Get the routing channel cache from the grid
+        if (!hasGridAccess()) return;
+        
+        try {
+            IGrid grid = getProxy().getGrid();
+            RoutingChannelCache cache = grid.getCache(RoutingChannelCache.class);
+            
+            if (cache == null) {
+                // Cache not available - will use fallback
+                return;
+            }
+            
+            // Register all connected devices
+            for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+                int x = xCoord + dir.offsetX;
+                int y = yCoord + dir.offsetY;
+                int z = zCoord + dir.offsetZ;
+                
+                TileEntity te = worldObj.getTileEntity(x, y, z);
+                if (isAEDevice(te) && te instanceof IGridHost) {
+                    IGridNode node = ((IGridHost) te).getGridNode(ForgeDirection.UNKNOWN);
+                    if (node != null) {
+                        cache.registerDevice(node, terminalId, allocatedChannels);
+                    }
+                }
+            }
+            
+        } catch (Exception e) {
+            AE2ChannelRouter.INSTANCE.getLogger().error(
+                "Failed to register devices with channel cache",
+                e
+            );
+        }
+    }
+
+    /**
+     * Update channel availability in the cache when allocation changes.
+     */
+    public void updateCacheAllocation() {
+        if (worldObj == null || worldObj.isRemote) return;
+        if (!hasGridAccess()) return;
+        
+        try {
+            IGrid grid = getProxy().getGrid();
+            RoutingChannelCache cache = grid.getCache(RoutingChannelCache.class);
+            
+            if (cache != null) {
+                cache.updateTerminalChannels(terminalId, allocatedChannels);
+            }
+        } catch (Exception e) {
+            AE2ChannelRouter.INSTANCE.getLogger().debug(
+                "Could not update cache allocation: {}",
+                e.getMessage()
+            );
+        }
     }
 
     // ==================== NBT Serialization ====================
