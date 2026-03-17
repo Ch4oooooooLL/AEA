@@ -349,6 +349,34 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
         markDirty();
     }
 
+    // ==================== Channel Distribution ====================
+
+    /**
+     * Check if this terminal can provide channels to AE devices.
+     * Returns true if allocated channels > 0 and online.
+     * 
+     * Note: Full AE2 channel integration will be in Phase 5.
+     * For Phase 4, the terminal provides the infrastructure and tracks
+     * that it has channel capacity.
+     *
+     * @return true if terminal can provide channels
+     */
+    public boolean canProvideChannels() {
+        return isOnline && allocatedChannels > 0;
+    }
+
+    /**
+     * Get available channel count for distribution to connected devices.
+     * 
+     * Note: Full AE2 channel integration will be in Phase 5.
+     * For now, returns allocated channels if terminal is online.
+     *
+     * @return number of channels available for distribution
+     */
+    public int getAvailableChannelsForDevices() {
+        return canProvideChannels() ? allocatedChannels : 0;
+    }
+
     // ==================== NBT Serialization ====================
 
     @Override
