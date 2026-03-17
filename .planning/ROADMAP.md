@@ -117,7 +117,7 @@ This roadmap maps 20 v1 requirements into 5 phases. Each phase delivers a cohere
 **Plans:** 3 plans
 
 - **04-01**: ~~Routing Terminal Foundation~~ — Block, tile, basic structure and NBT serialization **[COMPLETE]**
-- **04-02**: Terminal-Controller Communication — Wireless protocol, channel allocation **[PENDING]**
+- **04-02**: ~~Terminal-Controller Communication~~ — Wireless protocol, channel allocation **[COMPLETE]**
 - **04-03**: Terminal GUI — Status display, device connection handling **[PENDING]**
 
 **Wave Structure:**
@@ -152,7 +152,7 @@ This roadmap maps 20 v1 requirements into 5 phases. Each phase delivers a cohere
 | 1. Core Infrastructure | 3/3 | **Complete** | 2026-03-16 |
 | 2. Routing Cable | 3/3 | **Complete** | 2026-03-17 |
 | 3. Routing Controller | 3/3 | **Complete** | 2026-03-17 |
-| 4. Routing Terminal | 1/3 | In Progress | 2026-03-17 |
+| 4. Routing Terminal | 2/3 | In Progress | 2026-03-17 |
 | 5. AE2 Integration | 0/1 | Not started | - |
 
 ---
