@@ -6,6 +6,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 import com.ae2channelrouter.tile.RoutingControllerTile;
+import com.ae2channelrouter.tile.RoutingTerminalTile;
 
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
@@ -40,7 +41,7 @@ public class PacketRoutingChannel implements IMessage {
      * @param terminalId      Unique terminal identifier
      * @param routingChannelId Routing channel ID for wireless matching
      * @param action          Action type (REQUEST, RELEASE, RESPONSE)
-     * @param channelCount    Channel count (for RESPONSE)
+     * @param channelCount    Channel count (for RESPONSE or requested count for REQUEST)
      */
     public PacketRoutingChannel(UUID terminalId, int routingChannelId, Action action, int channelCount) {
         this.terminalId = terminalId;
@@ -147,8 +148,24 @@ public class PacketRoutingChannel implements IMessage {
         private IMessage handleClient(PacketRoutingChannel message, MessageContext ctx) {
             // Client-side handling for RESPONSE
             if (message.getAction() == Action.RESPONSE) {
-                // Update local client state with allocated channels
-                // This will be used by the terminal tile/GUI
+                // Find the terminal tile and update it
+                // Get the player entity from client context
+                net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getMinecraft();
+                World clientWorld = mc.theWorld;
+                
+                if (clientWorld == null) return null;
+                
+                // Search for terminal with matching UUID
+                // This is inefficient but works for v1
+                for (Object tileObj : clientWorld.loadedTileEntityList) {
+                    if (tileObj instanceof RoutingTerminalTile) {
+                        RoutingTerminalTile terminal = (RoutingTerminalTile) tileObj;
+                        if (terminal.getTerminalId().equals(message.getTerminalId())) {
+                            terminal.onChannelAllocated(message.getChannelCount());
+                            break;
+                        }
+                    }
+                }
             }
             return null;
         }
@@ -160,6 +177,7 @@ public class PacketRoutingChannel implements IMessage {
 
             int routingChannelId = message.getRoutingChannelId();
             UUID terminalId = message.getTerminalId();
+            int requestedCount = message.getChannelCount(); // Use the requested count from packet
 
             // Get the world from the player
             World world = ctx.getServerHandler().playerEntity.worldObj;
@@ -170,9 +188,8 @@ public class PacketRoutingChannel implements IMessage {
 
             int allocated = 0;
             if (controller != null) {
-                // Request channels from the controller
-                // Default request: 8 channels (configurable)
-                allocated = controller.allocateChannels(terminalId, 8);
+                // Use requested count from the packet instead of hardcoded 8
+                allocated = controller.allocateChannels(terminalId, requestedCount);
             }
 
             // Send response back to client
