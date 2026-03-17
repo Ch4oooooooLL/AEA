@@ -1,6 +1,8 @@
 package com.ae2channelrouter.tile;
 
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import net.minecraft.item.ItemStack;
@@ -220,7 +222,7 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
 
     /**
      * Scan all 6 sides for connected AE devices.
-     * Counts both direct adjacent blocks and devices connected via routing cables.
+     * Updates connectedDeviceCount and tracks which devices were detected.
      */
     public void updateDeviceConnections() {
         if (worldObj == null || worldObj.isRemote) return;
@@ -228,25 +230,68 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
         int previousCount = connectedDeviceCount;
         connectedDeviceCount = 0;
         
+        // Track which directions have valid AE devices (for debugging/display)
+        Map<ForgeDirection, String> detectedDevices = new HashMap<>();
+        
         // Check all 6 directions
         for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
             int x = xCoord + dir.offsetX;
             int y = yCoord + dir.offsetY;
             int z = zCoord + dir.offsetZ;
             
-            // Check for AE2 tile entities (not routing devices)
             TileEntity te = worldObj.getTileEntity(x, y, z);
             if (isAEDevice(te)) {
                 connectedDeviceCount++;
+                detectedDevices.put(dir, te.getClass().getSimpleName());
+                
+                AE2ChannelRouter.INSTANCE.getLogger().debug(
+                    "Terminal {} detected AE device at {}: {}",
+                    terminalId, dir.name(), te.getClass().getSimpleName()
+                );
             }
         }
         
-        // If device count changed significantly, request new channels
-        if (Math.abs(connectedDeviceCount - previousCount) >= 2) {
-            requestDefaultChannels();
+        // Log summary if device count changed
+        if (connectedDeviceCount != previousCount) {
+            AE2ChannelRouter.INSTANCE.getLogger().info(
+                "Terminal {} device count changed: {} -> {} (detected: {})",
+                terminalId, previousCount, connectedDeviceCount, detectedDevices.values()
+            );
+            
+            // Request channel adjustment if changed significantly
+            if (Math.abs(connectedDeviceCount - previousCount) >= 2) {
+                requestDefaultChannels();
+            }
         }
         
         markDirty();
+    }
+    
+    /**
+     * Get information about connected devices for GUI display.
+     * Returns map of direction -> device class name.
+     * 
+     * @return Map of connected devices
+     */
+    public Map<ForgeDirection, String> getConnectedDeviceInfo() {
+        Map<ForgeDirection, String> devices = new HashMap<>();
+        
+        if (worldObj == null || worldObj.isRemote) {
+            return devices;
+        }
+        
+        for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+            int x = xCoord + dir.offsetX;
+            int y = yCoord + dir.offsetY;
+            int z = zCoord + dir.offsetZ;
+            
+            TileEntity te = worldObj.getTileEntity(x, y, z);
+            if (isAEDevice(te)) {
+                devices.put(dir, te.getClass().getSimpleName());
+            }
+        }
+        
+        return devices;
     }
 
     /**
