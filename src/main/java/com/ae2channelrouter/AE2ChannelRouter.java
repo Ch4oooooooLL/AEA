@@ -4,6 +4,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.ae2channelrouter.block.ModBlocks;
 import com.ae2channelrouter.client.ClientInit;
+import com.ae2channelrouter.gui.GuiHandler;
 import com.ae2channelrouter.network.PacketRoutingChannel;
 
 import cpw.mods.fml.common.network.NetworkRegistry;
@@ -79,6 +80,10 @@ public class AE2ChannelRouter {
             PacketRoutingChannel.class,
             0, // Same packet ID for bidirectional
             Side.CLIENT);
+
+        // Register GUI handler
+        NetworkRegistry.INSTANCE.registerGuiHandler(this, new GuiHandler());
+        logger.info("Registered GUI handler");
 
         logger.info("AE2 Channel Router preInit complete");
     }
