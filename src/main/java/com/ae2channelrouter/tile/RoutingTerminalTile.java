@@ -12,6 +12,9 @@ import com.ae2channelrouter.AE2ChannelRouter;
 import com.ae2channelrouter.api.IRoutingDevice;
 import com.ae2channelrouter.network.PacketRoutingChannel;
 
+import appeng.api.networking.GridFlags;
+import appeng.api.networking.IGridHost;
+import appeng.api.networking.IGridNode;
 import appeng.api.util.DimensionalCoord;
 
 /**
@@ -247,21 +250,45 @@ public class RoutingTerminalTile extends AEBaseRouterTile implements IRoutingDev
     }
 
     /**
-     * Check if a tile entity is an AE device (but not a routing device).
+     * Check if a tile entity is an AE device that requires channels.
+     * Uses proper AE2 API instead of string matching.
+     * 
+     * @param te The tile entity to check
+     * @return true if this is an AE device that needs channels
      */
     private boolean isAEDevice(TileEntity te) {
-        if (te == null) return false;
-        
-        // Check if it's an AE2 network tile (has grid proxy)
-        // But exclude our routing devices
-        if (te instanceof IRoutingDevice) {
-            return false; // Don't count routing cables/controllers/terminals
+        // Null check and exclude routing devices
+        if (te == null) {
+            return false;
         }
         
-        // Check for AE2 tile entities by class name or interface
-        // This is a simplified check - in production, use AE2 API
-        String className = te.getClass().getName();
-        return className.contains("appeng") && !className.contains("BlockCable");
+        // Exclude our routing devices
+        if (te instanceof IRoutingDevice) {
+            return false;
+        }
+        
+        // Check if it's an AE2 grid host (implements IGridHost)
+        if (!(te instanceof IGridHost)) {
+            return false;
+        }
+        
+        try {
+            // Get the grid node to check its flags
+            IGridNode node = ((IGridHost) te).getGridNode(ForgeDirection.UNKNOWN);
+            
+            if (node == null) {
+                // No grid node, can't be an active AE device
+                return false;
+            }
+            
+            // Check if this device requires a channel
+            // This is the key check - only count devices that actually need channels
+            return node.hasFlag(GridFlags.REQUIRE_CHANNEL);
+            
+        } catch (Exception e) {
+            // If we can't get the node or check flags, it's not a valid AE device
+            return false;
+        }
     }
 
     // ==================== Soft Limit Warning ====================
